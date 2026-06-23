@@ -4,11 +4,19 @@ import pandas as pd
 import streamlit as st
 
 from components.cards import render_command_card
+from components.charts import (
+    build_equipment_fault_mix_chart,
+    build_equipment_monthly_chart,
+)
 from components.filters import build_equipment_risk_filters
 from components.tables import format_table_for_display
 
 
-def render_equipment_risk(equipment_risk_model: pd.DataFrame) -> None:
+def render_equipment_risk(
+    equipment_risk_model: pd.DataFrame,
+    monthly_equipment_trend: pd.DataFrame,
+    equipment_fault_family_mix: pd.DataFrame,
+) -> None:
     """Render equipment risk tab."""
     st.subheader("Equipment Risk Command View")
 
@@ -86,3 +94,46 @@ def render_equipment_risk(equipment_risk_model: pd.DataFrame) -> None:
         )
 
     st.info(str(selected_row["risk_explanation"]))
+
+    chart_left, chart_right = st.columns(2)
+
+    with chart_left:
+        st.plotly_chart(
+            build_equipment_monthly_chart(
+                monthly_equipment_trend=monthly_equipment_trend,
+                selected_equipment=selected_equipment,
+            ),
+            use_container_width=True,
+            key="equipment_monthly_chart",
+        )
+
+    with chart_right:
+        st.plotly_chart(
+            build_equipment_fault_mix_chart(
+                equipment_fault_family_mix=equipment_fault_family_mix,
+                selected_equipment=selected_equipment,
+            ),
+            use_container_width=True,
+            key="equipment_fault_mix_chart",
+        )
+
+    st.markdown("### Equipment Fault Family Detail")
+
+    detail_rows = equipment_fault_family_mix[
+        equipment_fault_family_mix["equipment_description_raw"].eq(selected_equipment)
+    ]
+
+    detail_columns = [
+        "fault_family_final",
+        "callbacks",
+        "mantraps",
+        "mantrap_rate_pct",
+        "median_response_minutes",
+        "median_repair_minutes",
+    ]
+
+    st.dataframe(
+        format_table_for_display(detail_rows[detail_columns]),
+        use_container_width=True,
+        hide_index=True,
+    )

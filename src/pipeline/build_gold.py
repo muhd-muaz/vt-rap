@@ -7,11 +7,13 @@ from src.models.risk_scoring import (
     build_analysis_callbacks,
     build_data_quality_summary,
     build_emerging_equipment_alerts,
+    build_equipment_fault_family_mix,
     build_equipment_risk_model,
     build_executive_summary,
     build_fault_family_summary,
     build_monthly_account_trend,
     build_monthly_callback_trend,
+    build_monthly_equipment_trend,
     build_monthly_equipment_type_trend,
     build_monthly_fault_family_trend,
 )
@@ -24,15 +26,18 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     fault_family_summary = build_fault_family_summary(analysis_callbacks)
     equipment_risk_model = build_equipment_risk_model(analysis_callbacks)
     account_risk_model = build_account_risk_model(analysis_callbacks)
+
     emerging_equipment_alerts = build_emerging_equipment_alerts(
         equipment_risk_model
     )
+
     executive_summary = build_executive_summary(
         analysis_callbacks=analysis_callbacks,
         fault_family_summary=fault_family_summary,
         equipment_risk_model=equipment_risk_model,
         account_risk_model=account_risk_model,
     )
+
     data_quality_summary = build_data_quality_summary(silver_callbacks)
 
     monthly_callback_trend = build_monthly_callback_trend(analysis_callbacks)
@@ -43,6 +48,10 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
         analysis_callbacks
     )
     monthly_account_trend = build_monthly_account_trend(analysis_callbacks)
+    monthly_equipment_trend = build_monthly_equipment_trend(analysis_callbacks)
+    equipment_fault_family_mix = build_equipment_fault_family_mix(
+        analysis_callbacks
+    )
 
     return {
         "fault_family_summary": fault_family_summary,
@@ -55,4 +64,6 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
         "monthly_fault_family_trend": monthly_fault_family_trend,
         "monthly_equipment_type_trend": monthly_equipment_type_trend,
         "monthly_account_trend": monthly_account_trend,
+        "monthly_equipment_trend": monthly_equipment_trend,
+        "equipment_fault_family_mix": equipment_fault_family_mix,
     }

@@ -162,6 +162,71 @@ def build_monthly_account_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFram
 
     return trend
 
+def build_monthly_equipment_trend(
+    analysis_callbacks: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build monthly callback trend by equipment."""
+    trend = (
+        analysis_callbacks
+        .groupby(
+            [
+                "event_month",
+                "equipment_description_raw",
+                "account_name_raw",
+                "equipment_type",
+            ],
+            dropna=False,
+        )
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            unique_fault_families=("fault_family_final", "nunique"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values(["equipment_description_raw", "event_month"])
+    )
+
+    trend["mantrap_rate_pct"] = (
+        trend["mantraps"] / trend["callbacks"] * 100
+    ).round(2)
+
+    return trend
+
+def build_equipment_fault_family_mix(
+    analysis_callbacks: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build fault family mix by equipment."""
+    mix = (
+        analysis_callbacks
+        .groupby(
+            [
+                "equipment_description_raw",
+                "account_name_raw",
+                "equipment_type",
+                "fault_family_final",
+            ],
+            dropna=False,
+        )
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values(
+            ["equipment_description_raw", "callbacks"],
+            ascending=[True, False],
+        )
+    )
+
+    mix["mantrap_rate_pct"] = (
+        mix["mantraps"] / mix["callbacks"] * 100
+    ).round(2)
+
+    return mix
 
 def build_fault_family_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Summarize callback performance by fault family."""

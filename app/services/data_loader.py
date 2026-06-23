@@ -53,4 +53,10 @@ def load_dashboard_data() -> dict[str, pd.DataFrame]:
             "monthly_equipment_type_trend.csv"
         ),
         "monthly_account_trend": load_processed_table("monthly_account_trend.csv"),
+        "monthly_equipment_trend": load_processed_table(
+            "monthly_equipment_trend.csv"
+        ),
+        "equipment_fault_family_mix": load_processed_table(
+            "equipment_fault_family_mix.csv"
+        ),
     }

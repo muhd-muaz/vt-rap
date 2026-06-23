@@ -217,3 +217,68 @@ def build_account_monthly_chart(
     figure.update_yaxes(title_text="Count")
 
     return apply_dark_chart_layout(figure, height=460)
+
+def build_equipment_monthly_chart(
+    monthly_equipment_trend: pd.DataFrame,
+    selected_equipment: str,
+):
+    """Build monthly callback and mantrap trend for selected equipment."""
+    trend = monthly_equipment_trend[
+        monthly_equipment_trend["equipment_description_raw"].eq(selected_equipment)
+    ].copy()
+
+    trend["event_month"] = trend["event_month"].astype(str)
+
+    melted = trend.melt(
+        id_vars=["event_month"],
+        value_vars=["callbacks", "mantraps"],
+        var_name="metric",
+        value_name="value",
+    )
+
+    figure = px.line(
+        melted,
+        x="event_month",
+        y="value",
+        color="metric",
+        markers=True,
+        title=f"Monthly Equipment Trend: {selected_equipment}",
+    )
+
+    figure.update_xaxes(title_text="Month")
+    figure.update_yaxes(title_text="Count")
+
+    return apply_dark_chart_layout(figure, height=460)
+
+
+def build_equipment_fault_mix_chart(
+    equipment_fault_family_mix: pd.DataFrame,
+    selected_equipment: str,
+):
+    """Build fault family mix chart for selected equipment."""
+    mix = equipment_fault_family_mix[
+        equipment_fault_family_mix["equipment_description_raw"].eq(selected_equipment)
+    ].copy()
+
+    mix = mix.sort_values("callbacks", ascending=True)
+
+    figure = px.bar(
+        mix,
+        x="callbacks",
+        y="fault_family_final",
+        orientation="h",
+        title=f"Fault Family Mix: {selected_equipment}",
+        hover_data=[
+            "mantraps",
+            "mantrap_rate_pct",
+            "median_response_minutes",
+            "median_repair_minutes",
+        ],
+        color="mantraps",
+        color_continuous_scale="Reds",
+    )
+
+    figure.update_xaxes(title_text="Callbacks")
+    figure.update_yaxes(title_text="Fault Family")
+
+    return apply_dark_chart_layout(figure, height=460)
