@@ -59,6 +59,110 @@ def build_analysis_callbacks(silver_callbacks: pd.DataFrame) -> pd.DataFrame:
     ].copy()
 
 
+def build_monthly_callback_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
+    """Build monthly callback and mantrap trend."""
+    trend = (
+        analysis_callbacks
+        .groupby("event_month", dropna=False)
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            unique_accounts=("account_code", "nunique"),
+            unique_equipment=("equipment_description_raw", "nunique"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values("event_month")
+    )
+
+    trend["mantrap_rate_pct"] = (
+        trend["mantraps"] / trend["callbacks"] * 100
+    ).round(2)
+
+    trend["callback_change_vs_previous_month"] = (
+        trend["callbacks"].diff().fillna(0).astype(int)
+    )
+
+    trend["mantrap_change_vs_previous_month"] = (
+        trend["mantraps"].diff().fillna(0).astype(int)
+    )
+
+    return trend
+
+
+def build_monthly_fault_family_trend(
+    analysis_callbacks: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build monthly trend by fault family."""
+    trend = (
+        analysis_callbacks
+        .groupby(["event_month", "fault_family_final"], dropna=False)
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values(["event_month", "callbacks"], ascending=[True, False])
+    )
+
+    trend["mantrap_rate_pct"] = (
+        trend["mantraps"] / trend["callbacks"] * 100
+    ).round(2)
+
+    return trend
+
+
+def build_monthly_equipment_type_trend(
+    analysis_callbacks: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build monthly trend by equipment type."""
+    trend = (
+        analysis_callbacks
+        .groupby(["event_month", "equipment_type"], dropna=False)
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            unique_equipment=("equipment_description_raw", "nunique"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values(["event_month", "callbacks"], ascending=[True, False])
+    )
+
+    trend["mantrap_rate_pct"] = (
+        trend["mantraps"] / trend["callbacks"] * 100
+    ).round(2)
+
+    return trend
+
+
+def build_monthly_account_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
+    """Build monthly trend by account."""
+    trend = (
+        analysis_callbacks
+        .groupby(["event_month", "account_code", "account_name_raw"], dropna=False)
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            unique_equipment=("equipment_description_raw", "nunique"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values(["event_month", "callbacks"], ascending=[True, False])
+    )
+
+    trend["mantrap_rate_pct"] = (
+        trend["mantraps"] / trend["callbacks"] * 100
+    ).round(2)
+
+    return trend
+
+
 def build_fault_family_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Summarize callback performance by fault family."""
     summary = (

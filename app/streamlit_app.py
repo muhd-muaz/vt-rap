@@ -44,13 +44,16 @@ def get_summary_value(summary: pd.DataFrame, metric_name: str) -> str:
 
     value = matched_rows.iloc[0]
 
-    if isinstance(value, float) and value.is_integer():
-        return f"{int(value):,}"
+    try:
+        numeric_value = float(value)
 
-    if isinstance(value, int):
-        return f"{value:,}"
+        if numeric_value.is_integer():
+            return f"{int(numeric_value):,}"
 
-    return str(value)
+        return f"{numeric_value:,.2f}"
+
+    except (TypeError, ValueError):
+        return str(value)
 
 
 def render_command_card(title: str, value: str, caption: str = "") -> None:
@@ -75,6 +78,76 @@ def format_table_for_display(dataframe: pd.DataFrame) -> pd.DataFrame:
         display_dataframe[column_name] = display_dataframe[column_name].round(2)
 
     return display_dataframe
+
+
+def build_monthly_callback_chart(monthly_callback_trend: pd.DataFrame):
+    """Build callback and mantrap monthly trend chart."""
+    trend = monthly_callback_trend.copy()
+    trend["event_month"] = trend["event_month"].astype(str)
+
+    melted = trend.melt(
+        id_vars=["event_month"],
+        value_vars=["callbacks", "mantraps"],
+        var_name="metric",
+        value_name="value",
+    )
+
+    figure = px.line(
+        melted,
+        x="event_month",
+        y="value",
+        color="metric",
+        markers=True,
+        title="Monthly Callback and Mantrap Trend",
+    )
+
+    figure.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#f8fafc"},
+        xaxis_title="Month",
+        yaxis_title="Count",
+        height=430,
+        margin={"l": 20, "r": 20, "t": 60, "b": 20},
+    )
+
+    return figure
+
+
+def build_monthly_response_repair_chart(monthly_callback_trend: pd.DataFrame):
+    """Build median response and repair monthly trend chart."""
+    trend = monthly_callback_trend.copy()
+    trend["event_month"] = trend["event_month"].astype(str)
+
+    melted = trend.melt(
+        id_vars=["event_month"],
+        value_vars=["median_response_minutes", "median_repair_minutes"],
+        var_name="metric",
+        value_name="minutes",
+    )
+
+    figure = px.line(
+        melted,
+        x="event_month",
+        y="minutes",
+        color="metric",
+        markers=True,
+        title="Monthly Median Response and Repair Time",
+    )
+
+    figure.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#f8fafc"},
+        xaxis_title="Month",
+        yaxis_title="Minutes",
+        height=430,
+        margin={"l": 20, "r": 20, "t": 60, "b": 20},
+    )
+
+    return figure
 
 
 def build_fault_family_chart(fault_family_summary: pd.DataFrame):
@@ -106,6 +179,80 @@ def build_fault_family_chart(fault_family_summary: pd.DataFrame):
         xaxis_title="Callbacks",
         yaxis_title="",
         height=480,
+        margin={"l": 20, "r": 20, "t": 60, "b": 20},
+    )
+
+    return figure
+
+
+def build_fault_family_trend_chart(
+    monthly_fault_family_trend: pd.DataFrame,
+    selected_fault_families: list[str],
+):
+    """Build monthly trend for selected fault families."""
+    trend = monthly_fault_family_trend[
+        monthly_fault_family_trend["fault_family_final"].isin(selected_fault_families)
+    ].copy()
+
+    trend["event_month"] = trend["event_month"].astype(str)
+
+    figure = px.line(
+        trend,
+        x="event_month",
+        y="callbacks",
+        color="fault_family_final",
+        markers=True,
+        title="Monthly Fault Family Trend",
+    )
+
+    figure.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#f8fafc"},
+        xaxis_title="Month",
+        yaxis_title="Callbacks",
+        height=520,
+        margin={"l": 20, "r": 20, "t": 60, "b": 20},
+    )
+
+    return figure
+
+
+def build_equipment_type_trend_chart(monthly_equipment_type_trend: pd.DataFrame):
+    """Build monthly equipment type callback trend."""
+    top_equipment_types = (
+        monthly_equipment_type_trend.groupby("equipment_type")["callbacks"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(8)
+        .index
+        .tolist()
+    )
+
+    trend = monthly_equipment_type_trend[
+        monthly_equipment_type_trend["equipment_type"].isin(top_equipment_types)
+    ].copy()
+
+    trend["event_month"] = trend["event_month"].astype(str)
+
+    figure = px.line(
+        trend,
+        x="event_month",
+        y="callbacks",
+        color="equipment_type",
+        markers=True,
+        title="Monthly Callback Trend by Equipment Type",
+    )
+
+    figure.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#f8fafc"},
+        xaxis_title="Month",
+        yaxis_title="Callbacks",
+        height=520,
         margin={"l": 20, "r": 20, "t": 60, "b": 20},
     )
 
@@ -144,6 +291,47 @@ def build_top_account_chart(account_risk_model: pd.DataFrame):
         xaxis_title="Risk Score",
         yaxis_title="",
         height=520,
+        margin={"l": 20, "r": 20, "t": 60, "b": 20},
+    )
+
+    return figure
+
+
+def build_account_monthly_chart(
+    monthly_account_trend: pd.DataFrame,
+    selected_account_name: str,
+):
+    """Build monthly trend for selected account."""
+    trend = monthly_account_trend[
+        monthly_account_trend["account_name_raw"].eq(selected_account_name)
+    ].copy()
+
+    trend["event_month"] = trend["event_month"].astype(str)
+
+    melted = trend.melt(
+        id_vars=["event_month"],
+        value_vars=["callbacks", "mantraps"],
+        var_name="metric",
+        value_name="value",
+    )
+
+    figure = px.line(
+        melted,
+        x="event_month",
+        y="value",
+        color="metric",
+        markers=True,
+        title=f"Monthly Trend: {selected_account_name}",
+    )
+
+    figure.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font={"color": "#f8fafc"},
+        xaxis_title="Month",
+        yaxis_title="Count",
+        height=460,
         margin={"l": 20, "r": 20, "t": 60, "b": 20},
     )
 
@@ -216,6 +404,7 @@ def render_executive_overview(
     equipment_risk_model: pd.DataFrame,
     account_risk_model: pd.DataFrame,
     emerging_equipment_alerts: pd.DataFrame,
+    monthly_callback_trend: pd.DataFrame,
 ) -> None:
     """Render executive overview tab."""
     st.subheader("Executive Overview")
@@ -292,6 +481,22 @@ def render_executive_overview(
             "Unclassified Faults",
             f"{unclassified_count:,}",
             "Callbacks without mapped recorded fault code.",
+        )
+
+    chart_left, chart_right = st.columns(2)
+
+    with chart_left:
+        st.plotly_chart(
+            build_monthly_callback_chart(monthly_callback_trend),
+            use_container_width=True,
+            key="overview_monthly_callback_chart",
+        )
+
+    with chart_right:
+        st.plotly_chart(
+            build_monthly_response_repair_chart(monthly_callback_trend),
+            use_container_width=True,
+            key="overview_monthly_response_repair_chart",
         )
 
     st.plotly_chart(
@@ -408,7 +613,10 @@ def render_equipment_risk(equipment_risk_model: pd.DataFrame) -> None:
     st.info(str(selected_row["risk_explanation"]))
 
 
-def render_account_risk(account_risk_model: pd.DataFrame) -> None:
+def render_account_risk(
+    account_risk_model: pd.DataFrame,
+    monthly_account_trend: pd.DataFrame,
+) -> None:
     """Render account risk tab."""
     st.subheader("Account Risk Command View")
 
@@ -434,8 +642,61 @@ def render_account_risk(account_risk_model: pd.DataFrame) -> None:
         hide_index=True,
     )
 
+    st.markdown("### Account Detail Trend")
 
-def render_fault_analysis(fault_family_summary: pd.DataFrame) -> None:
+    selected_account = st.selectbox(
+        "Select account",
+        options=account_risk_model["account_name_raw"].head(200).tolist(),
+    )
+
+    selected_row = account_risk_model[
+        account_risk_model["account_name_raw"].eq(selected_account)
+    ].iloc[0]
+
+    account_1, account_2, account_3, account_4 = st.columns(4)
+
+    with account_1:
+        render_command_card(
+            "Callbacks",
+            f"{int(selected_row['callbacks']):,}",
+            "Total completed/verified callbacks.",
+        )
+
+    with account_2:
+        render_command_card(
+            "Mantraps",
+            f"{int(selected_row['mantraps']):,}",
+            "Total mantrap events.",
+        )
+
+    with account_3:
+        render_command_card(
+            "Equipment",
+            f"{int(selected_row['unique_equipment']):,}",
+            "Unique equipment under account.",
+        )
+
+    with account_4:
+        render_command_card(
+            "Risk Score",
+            f"{float(selected_row['account_risk_score']):.2f}",
+            str(selected_row["risk_tier"]),
+        )
+
+    st.info(str(selected_row["risk_explanation"]))
+
+    st.plotly_chart(
+        build_account_monthly_chart(monthly_account_trend, selected_account),
+        use_container_width=True,
+        key="account_detail_monthly_chart",
+    )
+
+
+def render_fault_analysis(
+    fault_family_summary: pd.DataFrame,
+    monthly_fault_family_trend: pd.DataFrame,
+    monthly_equipment_type_trend: pd.DataFrame,
+) -> None:
     """Render fault analysis tab."""
     st.subheader("Fault Family Analysis")
 
@@ -443,6 +704,33 @@ def render_fault_analysis(fault_family_summary: pd.DataFrame) -> None:
         build_fault_family_chart(fault_family_summary),
         use_container_width=True,
         key="fault_analysis_fault_family_chart",
+    )
+
+    fault_family_options = (
+        fault_family_summary["fault_family_final"].dropna().astype(str).tolist()
+    )
+
+    default_families = fault_family_options[:6]
+
+    selected_fault_families = st.multiselect(
+        "Select fault families for monthly trend",
+        options=fault_family_options,
+        default=default_families,
+    )
+
+    st.plotly_chart(
+        build_fault_family_trend_chart(
+            monthly_fault_family_trend,
+            selected_fault_families,
+        ),
+        use_container_width=True,
+        key="fault_family_monthly_trend_chart",
+    )
+
+    st.plotly_chart(
+        build_equipment_type_trend_chart(monthly_equipment_type_trend),
+        use_container_width=True,
+        key="equipment_type_monthly_trend_chart",
     )
 
     table_columns = [
@@ -526,6 +814,12 @@ def main() -> None:
     account_risk_model = load_processed_table("account_risk_model.csv")
     emerging_equipment_alerts = load_processed_table("emerging_equipment_alerts.csv")
     data_quality_summary = load_processed_table("data_quality_summary.csv")
+    monthly_callback_trend = load_processed_table("monthly_callback_trend.csv")
+    monthly_fault_family_trend = load_processed_table("monthly_fault_family_trend.csv")
+    monthly_equipment_type_trend = load_processed_table(
+        "monthly_equipment_type_trend.csv"
+    )
+    monthly_account_trend = load_processed_table("monthly_account_trend.csv")
 
     overview_tab, equipment_tab, account_tab, fault_tab, emerging_tab, quality_tab = st.tabs(
         [
@@ -545,16 +839,24 @@ def main() -> None:
             equipment_risk_model=equipment_risk_model,
             account_risk_model=account_risk_model,
             emerging_equipment_alerts=emerging_equipment_alerts,
+            monthly_callback_trend=monthly_callback_trend,
         )
 
     with equipment_tab:
         render_equipment_risk(equipment_risk_model)
 
     with account_tab:
-        render_account_risk(account_risk_model)
+        render_account_risk(
+            account_risk_model=account_risk_model,
+            monthly_account_trend=monthly_account_trend,
+        )
 
     with fault_tab:
-        render_fault_analysis(fault_family_summary)
+        render_fault_analysis(
+            fault_family_summary=fault_family_summary,
+            monthly_fault_family_trend=monthly_fault_family_trend,
+            monthly_equipment_type_trend=monthly_equipment_type_trend,
+        )
 
     with emerging_tab:
         render_emerging_alerts(emerging_equipment_alerts)

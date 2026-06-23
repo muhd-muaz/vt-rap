@@ -10,6 +10,10 @@ from src.models.risk_scoring import (
     build_equipment_risk_model,
     build_executive_summary,
     build_fault_family_summary,
+    build_monthly_account_trend,
+    build_monthly_callback_trend,
+    build_monthly_equipment_type_trend,
+    build_monthly_fault_family_trend,
 )
 
 
@@ -31,6 +35,15 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     )
     data_quality_summary = build_data_quality_summary(silver_callbacks)
 
+    monthly_callback_trend = build_monthly_callback_trend(analysis_callbacks)
+    monthly_fault_family_trend = build_monthly_fault_family_trend(
+        analysis_callbacks
+    )
+    monthly_equipment_type_trend = build_monthly_equipment_type_trend(
+        analysis_callbacks
+    )
+    monthly_account_trend = build_monthly_account_trend(analysis_callbacks)
+
     return {
         "fault_family_summary": fault_family_summary,
         "equipment_risk_model": equipment_risk_model,
@@ -38,4 +51,8 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
         "emerging_equipment_alerts": emerging_equipment_alerts,
         "executive_summary": executive_summary,
         "data_quality_summary": data_quality_summary,
+        "monthly_callback_trend": monthly_callback_trend,
+        "monthly_fault_family_trend": monthly_fault_family_trend,
+        "monthly_equipment_type_trend": monthly_equipment_type_trend,
+        "monthly_account_trend": monthly_account_trend,
     }
