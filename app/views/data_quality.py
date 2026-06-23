@@ -5,6 +5,7 @@ import streamlit as st
 
 from components.cards import render_command_card
 from components.layout import render_section_header
+from components.downloads import render_csv_download_button
 
 
 def get_quality_row(
@@ -258,6 +259,13 @@ def render_quality_table(data_quality_summary: pd.DataFrame) -> None:
         data_quality_summary,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=data_quality_summary,
+        filename_prefix="data_quality_summary",
+        label="Download data quality summary CSV",
+        key="download_data_quality_summary",
     )
 
 

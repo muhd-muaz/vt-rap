@@ -9,6 +9,7 @@ from components.charts import (
     build_account_monthly_chart,
 )
 from components.layout import render_section_header
+from components.downloads import render_csv_download_button
 
 
 def get_available_risk_tiers(account_risk_model: pd.DataFrame) -> list[str]:
@@ -179,10 +180,19 @@ def render_account_risk_table(filtered_accounts: pd.DataFrame) -> None:
         column for column in display_columns if column in filtered_accounts.columns
     ]
 
+    export_data = filtered_accounts[available_columns].copy()
+
     st.dataframe(
-        filtered_accounts[available_columns],
+        export_data,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=export_data,
+        filename_prefix="filtered_account_risk",
+        label="Download filtered account risk CSV",
+        key="download_filtered_account_risk",
     )
 
 
@@ -276,10 +286,19 @@ def render_account_equipment_table(
         column for column in display_columns if column in account_equipment.columns
     ]
 
+    export_data = account_equipment[available_columns].copy()
+
     st.dataframe(
-        account_equipment[available_columns],
+        export_data,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=export_data,
+        filename_prefix="selected_account_equipment_risk",
+        label="Download selected account equipment CSV",
+        key="download_selected_account_equipment_risk",
     )
 
 

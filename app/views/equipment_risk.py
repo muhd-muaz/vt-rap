@@ -9,6 +9,7 @@ from components.charts import (
     build_equipment_monthly_chart,
 )
 from components.layout import render_section_header
+from components.downloads import render_csv_download_button
 
 
 def get_available_risk_tiers(equipment_risk_model: pd.DataFrame) -> list[str]:
@@ -249,10 +250,19 @@ def render_equipment_risk_table(filtered_equipment: pd.DataFrame) -> None:
         column for column in display_columns if column in filtered_equipment.columns
     ]
 
+    export_data = filtered_equipment[available_columns].copy()
+
     st.dataframe(
-        filtered_equipment[available_columns],
+        export_data,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=export_data,
+        filename_prefix="filtered_equipment_risk",
+        label="Download filtered equipment risk CSV",
+        key="download_filtered_equipment_risk",
     )
 
 

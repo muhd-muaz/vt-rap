@@ -13,6 +13,7 @@ from components.charts import (
     build_fault_family_trend_chart,
 )
 from components.layout import render_section_header
+from components.downloads import render_csv_download_button
 
 
 def get_top_fault_family(fault_family_summary: pd.DataFrame) -> str:
@@ -220,10 +221,19 @@ def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
         column for column in display_columns if column in fault_code_summary.columns
     ]
 
+    export_data = fault_code_summary[available_columns].copy()
+
     st.dataframe(
-        fault_code_summary[available_columns],
+        export_data,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=export_data,
+        filename_prefix="actual_fault_code_summary",
+        label="Download actual fault code summary CSV",
+        key="download_actual_fault_code_summary",
     )
 
 
@@ -262,21 +272,36 @@ def render_fault_code_trend_tab(
         fault_code_summary["fault_code_display"].isin(selected_fault_codes)
     ].copy()
 
+    selected_code_columns = [
+        "fault_code_display",
+        "fault_code_name",
+        "fault_family_final",
+        "callbacks",
+        "mantraps",
+        "mantrap_rate_pct",
+        "fault_code_description",
+        "fault_code_rectification",
+    ]
+
+    available_selected_code_columns = [
+        column
+        for column in selected_code_columns
+        if column in selected_code_details.columns
+    ]
+
+    export_data = selected_code_details[available_selected_code_columns].copy()
+
     st.dataframe(
-        selected_code_details[
-            [
-                "fault_code_display",
-                "fault_code_name",
-                "fault_family_final",
-                "callbacks",
-                "mantraps",
-                "mantrap_rate_pct",
-                "fault_code_description",
-                "fault_code_rectification",
-            ]
-        ],
+        export_data,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=export_data,
+        filename_prefix="selected_fault_code_trend_details",
+        label="Download selected fault code details CSV",
+        key="download_selected_fault_code_details",
     )
 
 

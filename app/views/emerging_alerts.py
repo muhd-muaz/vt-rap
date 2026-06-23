@@ -5,6 +5,7 @@ import streamlit as st
 
 from components.cards import render_command_card
 from components.layout import render_section_header
+from components.downloads import render_csv_download_button
 
 
 def render_emerging_overview_cards(
@@ -221,10 +222,19 @@ def render_emerging_alert_table(filtered_alerts: pd.DataFrame) -> None:
         column for column in display_columns if column in filtered_alerts.columns
     ]
 
+    export_data = filtered_alerts[available_columns].copy()
+
     st.dataframe(
-        filtered_alerts[available_columns],
+        export_data,
         width="stretch",
         hide_index=True,
+    )
+
+    render_csv_download_button(
+        dataframe=export_data,
+        filename_prefix="filtered_emerging_alerts",
+        label="Download filtered emerging alerts CSV",
+        key="download_filtered_emerging_alerts",
     )
 
 
