@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -34,9 +35,30 @@ def load_processed_table(file_name: str) -> pd.DataFrame:
     return pd.read_csv(file_path)
 
 
-def load_dashboard_data() -> dict[str, pd.DataFrame]:
+@st.cache_data
+def load_pipeline_metadata() -> dict:
+    """Load pipeline run metadata."""
+    metadata_path = PROCESSED_DIR / "pipeline_metadata.json"
+
+    if not metadata_path.exists():
+        return {
+            "pipeline_name": "VT-RAP",
+            "run_timestamp": "Not available",
+            "raw_callback_file_count": "-",
+            "raw_master_file_count": "-",
+            "callbacks_raw_rows": "-",
+            "silver_callbacks_rows": "-",
+            "latest_event_month": "-",
+            "validation_status": "Not available",
+        }
+
+    return json.loads(metadata_path.read_text(encoding="utf-8"))
+
+
+def load_dashboard_data() -> dict[str, pd.DataFrame | dict]:
     """Load all processed tables required by the dashboard."""
     return {
+        "metadata": load_pipeline_metadata(),
         "executive_summary": load_processed_table("executive_summary.csv"),
         "fault_family_summary": load_processed_table("fault_family_summary.csv"),
         "equipment_risk_model": load_processed_table("equipment_risk_model.csv"),

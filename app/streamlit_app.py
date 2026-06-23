@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from components.cards import render_metadata_header
 from services.data_loader import load_css, load_dashboard_data
 from views.account_risk import render_account_risk
 from views.data_quality import render_data_quality
@@ -24,6 +25,7 @@ def main() -> None:
     st.caption("Vertical Transport Reliability Analytics Platform")
 
     dashboard_data = load_dashboard_data()
+    render_metadata_header(dashboard_data["metadata"])
 
     overview_tab, equipment_tab, account_tab, fault_tab, emerging_tab, quality_tab = st.tabs(
         [

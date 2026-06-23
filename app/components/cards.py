@@ -37,3 +37,27 @@ def render_command_card(title: str, value: str, caption: str = "") -> None:
         """,
         unsafe_allow_html=True,
     )
+
+def render_metadata_header(metadata: dict) -> None:
+    """Render pipeline metadata summary below the dashboard title."""
+    run_timestamp = metadata.get("run_timestamp", "Not available")
+    latest_event_month = metadata.get("latest_event_month", "-")
+    raw_callback_file_count = metadata.get("raw_callback_file_count", "-")
+    callbacks_raw_rows = metadata.get("callbacks_raw_rows", "-")
+    validation_status = metadata.get("validation_status", "Not available")
+
+    st.markdown(
+        f"""
+        <div class="command-card">
+            <div class="command-card-title">Pipeline Status</div>
+            <div class="command-card-caption">
+                Last run: <b>{run_timestamp}</b> &nbsp; | &nbsp;
+                Latest event month: <b>{latest_event_month}</b> &nbsp; | &nbsp;
+                Raw callback files: <b>{raw_callback_file_count}</b> &nbsp; | &nbsp;
+                Raw rows: <b>{callbacks_raw_rows}</b> &nbsp; | &nbsp;
+                Validation: <b>{validation_status}</b>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
