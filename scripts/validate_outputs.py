@@ -29,6 +29,8 @@ REQUIRED_PROCESSED_FILES = [
     "account_fault_family_mix.csv",
     "vt_rap_management_outputs.xlsx",
     "pipeline_metadata.json",
+    "fault_code_summary.csv",
+    "monthly_fault_code_trend.csv",
 ]
 
 
@@ -94,6 +96,16 @@ REQUIRED_ACCOUNT_RISK_COLUMNS = [
     "risk_explanation",
 ]
 
+REQUIRED_FAULT_CODE_SUMMARY_COLUMNS = [
+    "fault_code_display",
+    "fault_code_name",
+    "fault_family_final",
+    "callbacks",
+    "mantraps",
+    "mantrap_rate_pct",
+    "unique_accounts",
+    "unique_equipment",
+]
 
 def assert_file_exists(file_name: str) -> None:
     """Validate that a processed file exists."""
@@ -212,6 +224,11 @@ def main() -> None:
         low_memory=False,
     )
 
+    fault_code_summary = pd.read_csv(
+        PROCESSED_DIR / "fault_code_summary.csv",
+        low_memory=False,
+    )
+
     print("Validating row counts and key metrics...")
 
     assert_equal(
@@ -290,6 +307,12 @@ def main() -> None:
         dataframe=data_quality_summary,
         required_columns=["check_name", "value", "rate_pct", "status"],
         table_name="data_quality_summary",
+    )
+
+    assert_columns_exist(
+        dataframe=fault_code_summary,
+        required_columns=REQUIRED_FAULT_CODE_SUMMARY_COLUMNS,
+        table_name="fault_code_summary",
     )
 
     update_pipeline_metadata_validation_status("Passed")

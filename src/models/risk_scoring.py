@@ -292,6 +292,98 @@ def build_fault_family_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
 
     return summary.sort_values("callbacks", ascending=False)
 
+def build_fault_code_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
+    """Summarize callback performance by actual recorded fault code."""
+    callbacks = analysis_callbacks.copy()
+
+    callbacks["fault_code_display"] = (
+        callbacks["fault_code_key"].fillna("UNCLASSIFIED")
+    )
+
+    callbacks["fault_code_name"] = (
+        callbacks["fault_code_name"]
+        .fillna(callbacks["fault_code_description"])
+        .fillna(callbacks["fault_code_display"])
+    )
+
+    summary = (
+        callbacks
+        .groupby(
+            [
+                "fault_code_display",
+                "fault_code_name",
+                "fault_family_final",
+                "fault_code_description",
+                "fault_code_rectification",
+            ],
+            dropna=False,
+        )
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            unique_accounts=("account_code", "nunique"),
+            unique_equipment=("equipment_description_raw", "nunique"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+    )
+
+    summary["callback_share_pct"] = (
+        summary["callbacks"] / summary["callbacks"].sum() * 100
+    ).round(2)
+
+    summary["mantrap_rate_pct"] = (
+        summary["mantraps"] / summary["callbacks"] * 100
+    ).round(2)
+
+    return summary.sort_values("callbacks", ascending=False)
+
+
+def build_monthly_fault_code_trend(
+    analysis_callbacks: pd.DataFrame,
+) -> pd.DataFrame:
+    """Build monthly trend by actual recorded fault code."""
+    callbacks = analysis_callbacks.copy()
+
+    callbacks["fault_code_display"] = (
+        callbacks["fault_code_key"].fillna("UNCLASSIFIED")
+    )
+
+    callbacks["fault_code_name"] = (
+        callbacks["fault_code_name"]
+        .fillna(callbacks["fault_code_description"])
+        .fillna(callbacks["fault_code_display"])
+    )
+
+    trend = (
+        callbacks
+        .groupby(
+            [
+                "event_month",
+                "fault_code_display",
+                "fault_code_name",
+                "fault_family_final",
+            ],
+            dropna=False,
+        )
+        .agg(
+            callbacks=("callback_id", "count"),
+            mantraps=("mantrap_flag", "sum"),
+            unique_accounts=("account_code", "nunique"),
+            unique_equipment=("equipment_description_raw", "nunique"),
+            median_response_minutes=("valid_response_minutes", "median"),
+            median_repair_minutes=("valid_repair_minutes", "median"),
+        )
+        .reset_index()
+        .sort_values(["event_month", "callbacks"], ascending=[True, False])
+    )
+
+    trend["mantrap_rate_pct"] = (
+        trend["mantraps"] / trend["callbacks"] * 100
+    ).round(2)
+
+    return trend
 
 def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Build equipment-level risk model with historical and recent risk signals."""

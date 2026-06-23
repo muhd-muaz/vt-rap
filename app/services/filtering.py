@@ -334,8 +334,6 @@ def render_period_filter(
 
     return filtered_callbacks, context
 
-
-@st.cache_data(show_spinner="Building filtered dashboard tables...")
 def build_filtered_dashboard_tables(
     filtered_silver_callbacks: pd.DataFrame,
 ) -> dict[str, pd.DataFrame]:

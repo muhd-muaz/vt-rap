@@ -626,3 +626,149 @@ def build_account_fault_mix_chart(
         xaxis_title="Callbacks",
         yaxis_title="Fault Family",
     )
+
+def build_fault_code_volume_chart(fault_code_summary: pd.DataFrame):
+    """Build actual fault-code callback volume chart."""
+    chart_data = (
+        fault_code_summary
+        .sort_values("callbacks", ascending=False)
+        .head(20)
+        .sort_values("callbacks", ascending=True)
+        .copy()
+    )
+
+    chart_data["fault_code_label"] = (
+        chart_data["fault_code_display"].astype(str)
+        + " — "
+        + chart_data["fault_code_name"].astype(str)
+    )
+
+    figure = px.bar(
+        chart_data,
+        x="callbacks",
+        y="fault_code_label",
+        orientation="h",
+        title="Top Actual Fault Codes by Callback Volume",
+        hover_data=[
+            "fault_family_final",
+            "mantraps",
+            "mantrap_rate_pct",
+            "unique_accounts",
+            "unique_equipment",
+            "median_response_minutes",
+            "median_repair_minutes",
+        ],
+        color="callbacks",
+        color_continuous_scale=[
+            "#1E293B",
+            "#2563EB",
+            "#2DD4BF",
+        ],
+    )
+
+    figure.update_traces(marker_line_width=0, opacity=0.96)
+    figure.update_layout(coloraxis_showscale=False)
+
+    return apply_modern_dark_layout(
+        figure,
+        height=620,
+        xaxis_title="Callbacks",
+        yaxis_title="",
+    )
+
+
+def build_fault_code_mantrap_chart(fault_code_summary: pd.DataFrame):
+    """Build actual fault-code mantrap volume chart."""
+    chart_data = (
+        fault_code_summary
+        .sort_values("mantraps", ascending=False)
+        .head(20)
+        .sort_values("mantraps", ascending=True)
+        .copy()
+    )
+
+    chart_data["fault_code_label"] = (
+        chart_data["fault_code_display"].astype(str)
+        + " — "
+        + chart_data["fault_code_name"].astype(str)
+    )
+
+    figure = px.bar(
+        chart_data,
+        x="mantraps",
+        y="fault_code_label",
+        orientation="h",
+        title="Top Actual Fault Codes by Mantrap Volume",
+        hover_data=[
+            "fault_family_final",
+            "callbacks",
+            "mantrap_rate_pct",
+            "unique_accounts",
+            "unique_equipment",
+            "median_response_minutes",
+            "median_repair_minutes",
+        ],
+        color="mantraps",
+        color_continuous_scale=[
+            "#1E293B",
+            "#FDBA74",
+            "#FB7185",
+        ],
+    )
+
+    figure.update_traces(marker_line_width=0, opacity=0.96)
+    figure.update_layout(coloraxis_showscale=False)
+
+    return apply_modern_dark_layout(
+        figure,
+        height=620,
+        xaxis_title="Mantraps",
+        yaxis_title="",
+    )
+
+
+def build_fault_code_trend_chart(
+    monthly_fault_code_trend: pd.DataFrame,
+    selected_fault_codes: list[str],
+):
+    """Build monthly trend for selected actual fault codes."""
+    trend = monthly_fault_code_trend[
+        monthly_fault_code_trend["fault_code_display"].isin(selected_fault_codes)
+    ].copy()
+
+    trend = prepare_month_label(trend)
+
+    if trend.empty:
+        figure = go.Figure()
+        figure.add_annotation(
+            text="No data available for selected fault codes.",
+            showarrow=False,
+            font={"color": TEXT_MUTED, "size": 14},
+        )
+    elif trend["event_month"].nunique() <= 1:
+        figure = px.bar(
+            trend,
+            x="fault_code_display",
+            y="callbacks",
+            title="Selected Fault Code Volume",
+            color="fault_code_display",
+            color_discrete_sequence=CHART_COLOR_SEQUENCE,
+        )
+        figure.update_traces(marker_line_width=0, opacity=0.95)
+    else:
+        figure = build_smooth_line_chart(
+            dataframe=trend,
+            x_column="event_month",
+            y_column="callbacks",
+            color_column="fault_code_display",
+            title="Monthly Actual Fault Code Trend",
+            colors=CHART_COLOR_SEQUENCE,
+        )
+
+    return apply_modern_dark_layout(
+        figure,
+        height=520,
+        xaxis_title="Month",
+        yaxis_title="Callbacks",
+        force_category_xaxis=True,
+    )

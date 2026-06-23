@@ -84,10 +84,11 @@ def main() -> None:
     with fault_tab:
         render_fault_analysis(
             fault_family_summary=dashboard_data["fault_family_summary"],
+            fault_code_summary=dashboard_data["fault_code_summary"],
             monthly_fault_family_trend=dashboard_data["monthly_fault_family_trend"],
+            monthly_fault_code_trend=dashboard_data["monthly_fault_code_trend"],
             monthly_equipment_type_trend=dashboard_data[
-                "monthly_equipment_type_trend"
-            ],
+                "monthly_equipment_type_trend"],
         )
 
     with emerging_tab:

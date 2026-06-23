@@ -83,17 +83,30 @@ def build_fault_lookup(fault_codes_raw: pd.DataFrame) -> pd.DataFrame:
         fault_lookup["item_2_(code)"]
     )
 
+    fault_lookup = fault_lookup.rename(
+        columns={
+            "category": "fault_master_category",
+            "primary": "fault_master_primary",
+            "sub": "fault_master_sub",
+            "exact": "fault_code_name",
+            "exact_60": "fault_code_name_short",
+            "current": "fault_code_current",
+            "description": "fault_code_description",
+            "rectification": "fault_code_rectification",
+        }
+    )
+
     fault_lookup = fault_lookup[
         [
             "fault_code_key",
-            "category",
-            "primary",
-            "sub",
-            "exact",
-            "exact_60",
-            "current",
-            "description",
-            "rectification",
+            "fault_master_category",
+            "fault_master_primary",
+            "fault_master_sub",
+            "fault_code_name",
+            "fault_code_name_short",
+            "fault_code_current",
+            "fault_code_description",
+            "fault_code_rectification",
         ]
     ].drop_duplicates(subset=["fault_code_key"])
 
@@ -115,7 +128,30 @@ def add_fault_features(
         fault_lookup,
         on="fault_code_key",
         how="left",
-        suffixes=("", "_fault_master"),
+    )
+
+    enriched["fault_code_master_match_flag"] = (
+        enriched["fault_code_key"].notna()
+        & enriched["fault_master_category"].notna()
+    )
+
+    enriched["fault_code_display"] = enriched["fault_code_key"].fillna("UNCLASSIFIED")
+
+    enriched["fault_code_name"] = (
+        enriched["fault_code_name_short"]
+        .fillna(enriched["fault_code_name"])
+        .fillna(enriched["fault_code_description"])
+        .fillna(enriched["fault_code_display"])
+    )
+
+    enriched["fault_code_description"] = (
+        enriched["fault_code_description"]
+        .fillna("No fault-code master description available")
+    )
+
+    enriched["fault_code_rectification"] = (
+        enriched["fault_code_rectification"]
+        .fillna("No rectification guidance available")
     )
 
     enriched["fault_family_from_recorded_code"] = (
@@ -130,10 +166,5 @@ def add_fault_features(
         enriched["fault_code_key"].isna(),
         "fault_family_final",
     ] = "Unclassified"
-
-    enriched["fault_code_master_match_flag"] = (
-        enriched["fault_code_key"].notna()
-        & enriched["category"].notna()
-    )
 
     return enriched
