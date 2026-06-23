@@ -10,7 +10,6 @@ from src.pipeline.build_gold import build_gold_tables
 from src.pipeline.build_raw import build_callbacks_raw, build_master_tables
 from src.pipeline.build_silver import build_silver_callbacks
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RAW_CALLBACKS_DIR = PROJECT_ROOT / "data" / "raw" / "callbacks"
 RAW_MASTER_DIR = PROJECT_ROOT / "data" / "raw" / "master"
@@ -112,9 +111,7 @@ def save_pipeline_metadata(
     )
 
     raw_master_files = sorted(
-        file_path.name
-        for file_path in RAW_MASTER_DIR.iterdir()
-        if file_path.is_file()
+        file_path.name for file_path in RAW_MASTER_DIR.iterdir() if file_path.is_file()
     )
 
     latest_event_month = None
@@ -230,9 +227,7 @@ def main() -> None:
     print(
         "completed_or_verified rows:",
         int(
-            silver_callbacks["analysis_status_group"]
-            .eq("completed_or_verified")
-            .sum()
+            silver_callbacks["analysis_status_group"].eq("completed_or_verified").sum()
         ),
     )
     print("total mantraps:", int(silver_callbacks["mantrap_flag"].sum()))

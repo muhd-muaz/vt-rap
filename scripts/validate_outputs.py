@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
@@ -107,6 +106,7 @@ REQUIRED_FAULT_CODE_SUMMARY_COLUMNS = [
     "unique_equipment",
 ]
 
+
 def assert_file_exists(file_name: str) -> None:
     """Validate that a processed file exists."""
     file_path = PROCESSED_DIR / file_name
@@ -122,8 +122,7 @@ def assert_columns_exist(
 ) -> None:
     """Validate required columns exist in a dataframe."""
     missing_columns = [
-        column for column in required_columns
-        if column not in dataframe.columns
+        column for column in required_columns if column not in dataframe.columns
     ]
 
     if missing_columns:
@@ -161,8 +160,7 @@ def validate_pipeline_metadata() -> dict:
     ]
 
     missing_metadata_keys = [
-        key for key in required_metadata_keys
-        if key not in metadata
+        key for key in required_metadata_keys if key not in metadata
     ]
 
     if missing_metadata_keys:
@@ -245,9 +243,7 @@ def main() -> None:
 
     assert_equal(
         int(
-            silver_callbacks["analysis_status_group"]
-            .eq("completed_or_verified")
-            .sum()
+            silver_callbacks["analysis_status_group"].eq("completed_or_verified").sum()
         ),
         EXPECTED_METRICS["completed_or_verified_rows"],
         "completed_or_verified rows",

@@ -4,7 +4,6 @@ from pathlib import Path
 
 from src.ingestion.readers import read_table_with_clean_headers
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RAW_DATA_DIR = PROJECT_ROOT / "data" / "raw"
 
