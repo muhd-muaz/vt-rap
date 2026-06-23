@@ -8,19 +8,170 @@ from components.charts import (
     build_account_fault_mix_chart,
     build_account_monthly_chart,
 )
-from components.tables import format_table_for_display
 
 
-def render_account_risk(
-    account_risk_model: pd.DataFrame,
-    monthly_account_trend: pd.DataFrame,
-    equipment_risk_model: pd.DataFrame,
-    account_fault_family_mix: pd.DataFrame,
-) -> None:
-    """Render account risk tab."""
-    st.subheader("Account Risk Command View")
+def render_section_header(title: str, subtitle: str) -> None:
+    """Render a clean section heading."""
+    st.markdown(
+        f"""
+        <div class="section-header">
+            <div class="section-title">{title}</div>
+            <div class="section-subtitle">{subtitle}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    table_columns = [
+
+def get_available_risk_tiers(account_risk_model: pd.DataFrame) -> list[str]:
+    """Return available account risk tiers."""
+    if "risk_tier" not in account_risk_model.columns:
+        return []
+
+    return (
+        account_risk_model["risk_tier"]
+        .dropna()
+        .astype(str)
+        .drop_duplicates()
+        .sort_values()
+        .tolist()
+    )
+
+
+def render_account_overview_cards(account_risk_model: pd.DataFrame) -> None:
+    """Render account risk overview cards."""
+    total_accounts = len(account_risk_model)
+
+    critical_accounts = int(
+        account_risk_model["risk_tier"].eq("Critical").sum()
+        if "risk_tier" in account_risk_model.columns
+        else 0
+    )
+
+    high_accounts = int(
+        account_risk_model["risk_tier"].eq("High").sum()
+        if "risk_tier" in account_risk_model.columns
+        else 0
+    )
+
+    total_mantraps = int(
+        account_risk_model["mantraps"].sum()
+        if "mantraps" in account_risk_model.columns
+        else 0
+    )
+
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+
+    with card_col_1:
+        render_command_card(
+            title="Accounts Analyzed",
+            value=f"{total_accounts:,}",
+            caption="Customer accounts active in the selected period.",
+        )
+
+    with card_col_2:
+        render_command_card(
+            title="Critical Accounts",
+            value=f"{critical_accounts:,}",
+            caption="Accounts classified as critical operational risk.",
+        )
+
+    with card_col_3:
+        render_command_card(
+            title="High-Risk Accounts",
+            value=f"{high_accounts:,}",
+            caption="Accounts classified as high operational risk.",
+        )
+
+    with card_col_4:
+        render_command_card(
+            title="Account Mantraps",
+            value=f"{total_mantraps:,}",
+            caption="Total mantrap events across account records.",
+        )
+
+
+def filter_account_risk_model(account_risk_model: pd.DataFrame) -> pd.DataFrame:
+    """Render account filters and return filtered account risk model."""
+    with st.container(border=True):
+        st.caption("Account risk filters")
+
+        filter_col_1, filter_col_2, filter_col_3, filter_col_4 = st.columns(
+            [1.1, 1, 1, 1]
+        )
+
+        with filter_col_1:
+            selected_risk_tiers = st.multiselect(
+                "Risk tier",
+                options=get_available_risk_tiers(account_risk_model),
+                default=get_available_risk_tiers(account_risk_model),
+                key="account_risk_tier_filter",
+            )
+
+        with filter_col_2:
+            minimum_callbacks = st.number_input(
+                "Minimum callbacks",
+                min_value=0,
+                value=0,
+                step=1,
+                key="account_minimum_callbacks_filter",
+            )
+
+        with filter_col_3:
+            minimum_mantraps = st.number_input(
+                "Minimum mantraps",
+                min_value=0,
+                value=0,
+                step=1,
+                key="account_minimum_mantraps_filter",
+            )
+
+        with filter_col_4:
+            minimum_equipment = st.number_input(
+                "Minimum equipment",
+                min_value=0,
+                value=0,
+                step=1,
+                key="account_minimum_equipment_filter",
+            )
+
+        search_text = st.text_input(
+            "Search account",
+            placeholder="Type account name or account code...",
+            key="account_search_filter",
+        )
+
+    filtered = account_risk_model.copy()
+
+    if selected_risk_tiers:
+        filtered = filtered[filtered["risk_tier"].isin(selected_risk_tiers)]
+
+    filtered = filtered[
+        filtered["callbacks"].ge(minimum_callbacks)
+        & filtered["mantraps"].ge(minimum_mantraps)
+        & filtered["unique_equipment"].ge(minimum_equipment)
+    ]
+
+    if search_text.strip():
+        search_value = search_text.strip().lower()
+
+        filtered = filtered[
+            filtered["account_name_raw"]
+            .astype(str)
+            .str.lower()
+            .str.contains(search_value, na=False)
+            | filtered["account_code"]
+            .astype(str)
+            .str.lower()
+            .str.contains(search_value, na=False)
+        ]
+
+    return filtered
+
+
+def render_account_risk_table(filtered_accounts: pd.DataFrame) -> None:
+    """Render filtered account risk table."""
+    display_columns = [
         "account_code",
         "account_name_raw",
         "callbacks",
@@ -36,121 +187,187 @@ def render_account_risk(
         "risk_explanation",
     ]
 
+    available_columns = [
+        column for column in display_columns
+        if column in filtered_accounts.columns
+    ]
+
     st.dataframe(
-        format_table_for_display(account_risk_model[table_columns].head(200)),
+        filtered_accounts[available_columns],
         use_container_width=True,
         hide_index=True,
     )
 
-    st.markdown("### Account Detail Drilldown")
 
-    selected_account = st.selectbox(
-        "Select account",
-        options=account_risk_model["account_name_raw"].head(300).tolist(),
+def render_selected_account_profile(selected_row: pd.Series) -> None:
+    """Render selected account profile."""
+    st.markdown(
+        f"""
+        <div class="insight-panel">
+            <div class="insight-panel-title">Selected account profile</div>
+            <div class="insight-grid">
+                <div>
+                    <span>Account</span>
+                    <strong>{selected_row.get("account_name_raw", "-")}</strong>
+                    <p>Customer account selected for operational drilldown.</p>
+                </div>
+                <div>
+                    <span>Account code</span>
+                    <strong>{selected_row.get("account_code", "-")}</strong>
+                    <p>Original account identifier from the source records.</p>
+                </div>
+                <div>
+                    <span>Risk tier</span>
+                    <strong>{selected_row.get("risk_tier", "-")}</strong>
+                    <p>Current account-level risk classification.</p>
+                </div>
+                <div>
+                    <span>Primary driver</span>
+                    <strong>{selected_row.get("primary_risk_driver", "-")}</strong>
+                    <p>Main factor contributing to the account risk score.</p>
+                </div>
+                <div>
+                    <span>Callbacks</span>
+                    <strong>{int(selected_row.get("callbacks", 0)):,}</strong>
+                    <p>Total callback volume under this account.</p>
+                </div>
+                <div>
+                    <span>Mantraps</span>
+                    <strong>{int(selected_row.get("mantraps", 0)):,}</strong>
+                    <p>Mantrap-related callback events under this account.</p>
+                </div>
+                <div>
+                    <span>Unique equipment</span>
+                    <strong>{int(selected_row.get("unique_equipment", 0)):,}</strong>
+                    <p>Number of equipment units linked to this account.</p>
+                </div>
+                <div>
+                    <span>Risk score</span>
+                    <strong>{float(selected_row.get("account_risk_score", 0)):,.2f}</strong>
+                    <p>Composite account risk score.</p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    selected_row = account_risk_model[
-        account_risk_model["account_name_raw"].eq(selected_account)
-    ].iloc[0]
 
-    account_1, account_2, account_3, account_4 = st.columns(4)
-
-    with account_1:
-        render_command_card(
-            "Callbacks",
-            f"{int(selected_row['callbacks']):,}",
-            "Total completed/verified callbacks.",
-        )
-
-    with account_2:
-        render_command_card(
-            "Mantraps",
-            f"{int(selected_row['mantraps']):,}",
-            "Total mantrap events.",
-        )
-
-    with account_3:
-        render_command_card(
-            "Equipment",
-            f"{int(selected_row['unique_equipment']):,}",
-            "Unique equipment under account.",
-        )
-
-    with account_4:
-        render_command_card(
-            "Risk Score",
-            f"{float(selected_row['account_risk_score']):.2f}",
-            str(selected_row["risk_tier"]),
-        )
-
-    st.info(str(selected_row["risk_explanation"]))
-
-    chart_left, chart_right = st.columns(2)
-
-    with chart_left:
-        st.plotly_chart(
-            build_account_monthly_chart(
-                monthly_account_trend=monthly_account_trend,
-                selected_account_name=selected_account,
-            ),
-            use_container_width=True,
-            key="account_detail_monthly_chart",
-        )
-
-    with chart_right:
-        st.plotly_chart(
-            build_account_fault_mix_chart(
-                account_fault_family_mix=account_fault_family_mix,
-                selected_account_name=selected_account,
-            ),
-            use_container_width=True,
-            key="account_fault_mix_chart",
-        )
-
-    st.markdown("### Equipment Under Selected Account")
-
+def render_account_equipment_table(
+    equipment_risk_model: pd.DataFrame,
+    selected_account_name: str,
+) -> None:
+    """Render equipment ranking under selected account."""
     account_equipment = equipment_risk_model[
-        equipment_risk_model["account_name_raw"].eq(selected_account)
+        equipment_risk_model["account_name_raw"].eq(selected_account_name)
     ].copy()
 
-    equipment_columns = [
+    if account_equipment.empty:
+        st.info("No equipment risk records found for the selected account.")
+        return
+
+    account_equipment = account_equipment.sort_values(
+        "equipment_risk_score_v3",
+        ascending=False,
+    )
+
+    display_columns = [
         "equipment_description_raw",
         "equipment_type",
         "callbacks",
         "mantraps",
         "mantrap_rate_pct",
-        "callbacks_last_365_days",
-        "mantraps_last_365_days",
+        "median_response_minutes",
+        "median_repair_minutes",
         "equipment_risk_score_v3",
         "risk_tier",
+        "risk_signal_type",
         "primary_risk_driver",
-        "risk_explanation",
+    ]
+
+    available_columns = [
+        column for column in display_columns
+        if column in account_equipment.columns
     ]
 
     st.dataframe(
-        format_table_for_display(account_equipment[equipment_columns].head(100)),
+        account_equipment[available_columns],
         use_container_width=True,
         hide_index=True,
     )
 
-    st.markdown("### Account Fault Family Detail")
 
-    account_fault_rows = account_fault_family_mix[
-        account_fault_family_mix["account_name_raw"].eq(selected_account)
-    ]
+def render_account_risk(
+    account_risk_model: pd.DataFrame,
+    monthly_account_trend: pd.DataFrame,
+    equipment_risk_model: pd.DataFrame,
+    account_fault_family_mix: pd.DataFrame,
+) -> None:
+    """Render account risk dashboard page."""
+    render_section_header(
+        title="Account Risk",
+        subtitle="Identify customer accounts with concentrated callback volume, mantrap exposure, and equipment reliability risk.",
+    )
 
-    fault_columns = [
-        "fault_family_final",
-        "callbacks",
-        "mantraps",
-        "mantrap_rate_pct",
-        "unique_equipment",
-        "median_response_minutes",
-        "median_repair_minutes",
-    ]
+    render_account_overview_cards(account_risk_model)
 
-    st.dataframe(
-        format_table_for_display(account_fault_rows[fault_columns]),
-        use_container_width=True,
-        hide_index=True,
+    filtered_accounts = filter_account_risk_model(account_risk_model)
+
+    if filtered_accounts.empty:
+        st.warning("No accounts match the selected filters.")
+        return
+
+    filtered_accounts = filtered_accounts.sort_values(
+        "account_risk_score",
+        ascending=False,
+    )
+
+    render_section_header(
+        title="Filtered account ranking",
+        subtitle="Accounts ranked by composite operational risk score after applying the current filters.",
+    )
+
+    render_account_risk_table(filtered_accounts.head(100))
+
+    selected_account_name = st.selectbox(
+        "Select account for drilldown",
+        options=filtered_accounts["account_name_raw"].tolist(),
+        index=0,
+        key="selected_account_drilldown",
+    )
+
+    selected_row = filtered_accounts[
+        filtered_accounts["account_name_raw"].eq(selected_account_name)
+    ].iloc[0]
+
+    render_selected_account_profile(selected_row)
+
+    chart_col_1, chart_col_2 = st.columns(2)
+
+    with chart_col_1:
+        st.plotly_chart(
+            build_account_monthly_chart(
+                monthly_account_trend=monthly_account_trend,
+                selected_account_name=selected_account_name,
+            ),
+            use_container_width=True,
+        )
+
+    with chart_col_2:
+        st.plotly_chart(
+            build_account_fault_mix_chart(
+                account_fault_family_mix=account_fault_family_mix,
+                selected_account_name=selected_account_name,
+            ),
+            use_container_width=True,
+        )
+
+    render_section_header(
+        title="Equipment under selected account",
+        subtitle="Equipment linked to the selected account, ranked by equipment risk score.",
+    )
+
+    render_account_equipment_table(
+        equipment_risk_model=equipment_risk_model,
+        selected_account_name=selected_account_name,
     )
