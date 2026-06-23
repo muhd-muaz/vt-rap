@@ -37,101 +37,66 @@ def get_quality_value(
 
 def render_quality_status_panel(data_quality_summary: pd.DataFrame) -> None:
     """Render high-level data quality cards."""
-    total_records = get_quality_value(
-        data_quality_summary,
-        "Total callback records",
-    )
-    completed_records = get_quality_value(
-        data_quality_summary,
-        "Completed / verified records",
-    )
-    fault_match_rate = get_quality_value(
-        data_quality_summary,
-        "Fault-code master matched rows",
-        value_column="rate_pct",
-    )
-    missing_fault_codes = get_quality_value(
-        data_quality_summary,
-        "Missing fault-code rows",
-    )
-
     card_1, card_2, card_3, card_4 = st.columns(4)
 
     with card_1:
         render_command_card(
             "Total Records",
-            total_records,
+            get_quality_value(data_quality_summary, "Total callback records"),
             "Raw callback records loaded into the pipeline.",
         )
 
     with card_2:
         render_command_card(
             "Completed / Verified",
-            completed_records,
+            get_quality_value(data_quality_summary, "Completed / verified records"),
             "Records used for management analytics.",
         )
 
     with card_3:
         render_command_card(
             "Fault-Code Match Rate",
-            f"{fault_match_rate}%",
+            f"{get_quality_value(data_quality_summary, 'Fault-code master matched rows', 'rate_pct')}%",
             "Rows matched against the fault-code master.",
         )
 
     with card_4:
         render_command_card(
             "Missing Fault Codes",
-            missing_fault_codes,
+            get_quality_value(data_quality_summary, "Missing fault-code rows"),
             "Rows without recorded fault-code mapping.",
         )
 
 
 def render_quality_review_panel(data_quality_summary: pd.DataFrame) -> None:
     """Render review-focused quality cards."""
-    invalid_response_rows = get_quality_value(
-        data_quality_summary,
-        "Invalid response-time rows",
-    )
-    invalid_repair_rows = get_quality_value(
-        data_quality_summary,
-        "Invalid repair-time rows",
-    )
-    open_rows = get_quality_value(
-        data_quality_summary,
-        "Open / in-process rows",
-    )
-    rejected_rows = get_quality_value(
-        data_quality_summary,
-        "Rejected rows",
-    )
-
     card_1, card_2, card_3, card_4 = st.columns(4)
 
     with card_1:
         render_command_card(
             "Invalid Response Times",
-            invalid_response_rows,
+            get_quality_value(data_quality_summary, "Invalid response-time rows"),
             "Rows where response duration is negative or invalid.",
         )
 
     with card_2:
         render_command_card(
             "Invalid Repair Times",
-            invalid_repair_rows,
+            get_quality_value(data_quality_summary, "Invalid repair-time rows"),
             "Rows where repair duration is negative or invalid.",
         )
 
     with card_3:
         render_command_card(
             "Open / In-Process",
-            open_rows,
+            get_quality_value(data_quality_summary, "Open / in-process rows"),
             "Records not yet completed or verified.",
         )
 
     with card_4:
         render_command_card(
             "Rejected Records",
-            rejected_rows,
+            get_quality_value(data_quality_summary, "Rejected rows"),
             "Rows excluded from completed/verified analysis.",
         )
 
@@ -215,7 +180,7 @@ def render_data_quality(data_quality_summary: pd.DataFrame) -> None:
     st.subheader("Data Quality Audit Panel")
 
     st.caption(
-        "This page checks whether the analytics output is based on reliable and complete source data."
+        "Checks source completeness, timing validity, fault-code coverage, and records excluded from management analytics."
     )
 
     render_quality_status_panel(data_quality_summary)
