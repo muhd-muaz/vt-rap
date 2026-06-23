@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from components.cards import get_summary_value, render_command_card
 from components.charts import (
     build_fault_family_chart,
     build_monthly_callback_chart,
@@ -133,9 +134,7 @@ def render_top_tables(
         ]
 
         available_equipment_columns = [
-            column
-            for column in equipment_columns
-            if column in equipment_risk_model.columns
+            column for column in equipment_columns if column in equipment_risk_model
         ]
 
         st.dataframe(
@@ -161,7 +160,7 @@ def render_top_tables(
         ]
 
         available_account_columns = [
-            column for column in account_columns if column in account_risk_model.columns
+            column for column in account_columns if column in account_risk_model
         ]
 
         st.dataframe(
@@ -188,9 +187,7 @@ def render_top_tables(
     ]
 
     available_emerging_columns = [
-        column
-        for column in emerging_columns
-        if column in emerging_equipment_alerts.columns
+        column for column in emerging_columns if column in emerging_equipment_alerts
     ]
 
     st.dataframe(
