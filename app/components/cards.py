@@ -4,9 +4,37 @@ import pandas as pd
 import streamlit as st
 
 
+def normalise_metric_name(value: object) -> str:
+    """Normalize metric names for flexible matching."""
+    return (
+        str(value)
+        .strip()
+        .lower()
+        .replace("-", "_")
+        .replace("/", "_")
+        .replace(" ", "_")
+    )
+
+
 def get_summary_value(summary: pd.DataFrame, metric_name: str) -> str:
     """Return a metric value from the executive summary table."""
-    matched_rows = summary.loc[summary["metric"].eq(metric_name), "value"]
+    if summary.empty:
+        return "-"
+
+    metric_column = "metric" if "metric" in summary.columns else summary.columns[0]
+    value_column = "value" if "value" in summary.columns else summary.columns[1]
+
+    target_metric = normalise_metric_name(metric_name)
+
+    working_summary = summary.copy()
+    working_summary["_normalised_metric"] = working_summary[metric_column].map(
+        normalise_metric_name
+    )
+
+    matched_rows = working_summary.loc[
+        working_summary["_normalised_metric"].eq(target_metric),
+        value_column,
+    ]
 
     if matched_rows.empty:
         return "-"

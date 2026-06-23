@@ -141,7 +141,7 @@ def render_top_tables(
 
         st.dataframe(
             equipment_risk_model[available_equipment_columns].head(12),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -168,7 +168,7 @@ def render_top_tables(
 
         st.dataframe(
             account_risk_model[available_account_columns].head(12),
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -196,7 +196,7 @@ def render_top_tables(
 
     st.dataframe(
         emerging_equipment_alerts[available_emerging_columns].head(15),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -253,13 +253,14 @@ def render_executive_overview(
     with trend_col_1:
         st.plotly_chart(
             build_monthly_callback_chart(monthly_callback_trend),
-            use_container_width=True,
+            width="stretch",
+            key="executive_monthly_callback_chart",
         )
 
     with trend_col_2:
         st.plotly_chart(
             build_monthly_response_repair_chart(monthly_callback_trend),
-            use_container_width=True,
+            width="stretch",
         )
 
     analysis_col_1, analysis_col_2 = st.columns([1.05, 1])
@@ -267,13 +268,15 @@ def render_executive_overview(
     with analysis_col_1:
         st.plotly_chart(
             build_fault_family_chart(fault_family_summary),
-            use_container_width=True,
+            width="stretch",
+
         )
 
     with analysis_col_2:
         st.plotly_chart(
             build_top_account_chart(account_risk_model),
-            use_container_width=True,
+            width="stretch",
+            key="executive_top_account_chart",
         )
 
     render_management_interpretation(

@@ -268,7 +268,7 @@ def render_quality_table(data_quality_summary: pd.DataFrame) -> None:
 
     st.dataframe(
         data_quality_summary,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 

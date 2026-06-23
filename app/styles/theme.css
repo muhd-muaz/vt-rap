@@ -486,3 +486,17 @@ div[data-testid="stVerticalBlock"] > div:has(.section-header) {
 .stMultiSelect {
     margin-bottom: 12px;
 }
+
+.period-card-value {
+    font-size: 1.15rem;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+[data-testid="stMetricValue"] {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}

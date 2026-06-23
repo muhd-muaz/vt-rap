@@ -266,7 +266,7 @@ def render_equipment_risk_table(filtered_equipment: pd.DataFrame) -> None:
 
     st.dataframe(
         filtered_equipment[available_columns],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -323,7 +323,8 @@ def render_equipment_risk(
                 monthly_equipment_trend=monthly_equipment_trend,
                 selected_equipment=selected_equipment,
             ),
-            use_container_width=True,
+            width="stretch",
+            key="equipment_risk_monthly_chart",
         )
 
     with chart_col_2:
@@ -332,5 +333,6 @@ def render_equipment_risk(
                 equipment_fault_family_mix=equipment_fault_family_mix,
                 selected_equipment=selected_equipment,
             ),
-            use_container_width=True,
+            width="stretch",
+            key="equipment_risk_fault_mix_chart",
         )

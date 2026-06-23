@@ -194,7 +194,7 @@ def render_account_risk_table(filtered_accounts: pd.DataFrame) -> None:
 
     st.dataframe(
         filtered_accounts[available_columns],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -292,7 +292,7 @@ def render_account_equipment_table(
 
     st.dataframe(
         account_equipment[available_columns],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -350,7 +350,8 @@ def render_account_risk(
                 monthly_account_trend=monthly_account_trend,
                 selected_account_name=selected_account_name,
             ),
-            use_container_width=True,
+            width="stretch",
+            key="account_risk_monthly_chart",
         )
 
     with chart_col_2:
@@ -359,7 +360,8 @@ def render_account_risk(
                 account_fault_family_mix=account_fault_family_mix,
                 selected_account_name=selected_account_name,
             ),
-            use_container_width=True,
+            width="stretch",
+            key="account_risk_fault_mix_chart",
         )
 
     render_section_header(

@@ -142,7 +142,8 @@ def render_fault_family_tab(
     with chart_col:
         st.plotly_chart(
             build_fault_family_chart(fault_family_summary),
-            use_container_width=True,
+            width="stretch",
+            key="fault_analysis_family_volume_chart",
         )
 
     with table_col:
@@ -160,7 +161,7 @@ def render_fault_family_tab(
                     "median_repair_minutes",
                 ]
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -178,11 +179,12 @@ def render_fault_family_tab(
 
     st.plotly_chart(
         build_fault_family_trend_chart(
-            monthly_fault_family_trend=monthly_fault_family_trend,
-            selected_fault_families=selected_fault_families,
-        ),
-        use_container_width=True,
-    )
+          monthly_fault_family_trend=monthly_fault_family_trend,
+         selected_fault_families=selected_fault_families,
+    ),
+    width="stretch",
+    key="fault_analysis_family_trend_chart",
+)
 
 
 def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
@@ -197,13 +199,15 @@ def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
     with chart_col_1:
         st.plotly_chart(
             build_fault_code_volume_chart(fault_code_summary),
-            use_container_width=True,
+            width="stretch",
+            key="fault_analysis_code_volume_chart",
         )
 
     with chart_col_2:
         st.plotly_chart(
             build_fault_code_mantrap_chart(fault_code_summary),
-            use_container_width=True,
+            width="stretch",
+            key="fault_analysis_code_mantrap_chart",
         )
 
     st.markdown("#### Actual Fault Code Detail")
@@ -231,7 +235,7 @@ def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
 
     st.dataframe(
         fault_code_summary[available_columns],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -263,7 +267,8 @@ def render_fault_code_trend_tab(
             monthly_fault_code_trend=monthly_fault_code_trend,
             selected_fault_codes=selected_fault_codes,
         ),
-        use_container_width=True,
+        width="stretch",
+        key="fault_analysis_code_trend_chart",
     )
 
     selected_code_details = fault_code_summary[
@@ -283,7 +288,7 @@ def render_fault_code_trend_tab(
                 "fault_code_rectification",
             ]
         ],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -299,7 +304,8 @@ def render_equipment_type_trend_tab(
 
     st.plotly_chart(
         build_equipment_type_trend_chart(monthly_equipment_type_trend),
-        use_container_width=True,
+        width="stretch",
+        key="fault_analysis_equipment_type_trend_chart",
     )
 
     st.dataframe(
@@ -307,7 +313,7 @@ def render_equipment_type_trend_tab(
             ["event_month", "callbacks"],
             ascending=[False, False],
         ),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
