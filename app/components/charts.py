@@ -282,3 +282,36 @@ def build_equipment_fault_mix_chart(
     figure.update_yaxes(title_text="Fault Family")
 
     return apply_dark_chart_layout(figure, height=460)
+
+def build_account_fault_mix_chart(
+    account_fault_family_mix: pd.DataFrame,
+    selected_account_name: str,
+):
+    """Build fault family mix chart for selected account."""
+    mix = account_fault_family_mix[
+        account_fault_family_mix["account_name_raw"].eq(selected_account_name)
+    ].copy()
+
+    mix = mix.sort_values("callbacks", ascending=True)
+
+    figure = px.bar(
+        mix,
+        x="callbacks",
+        y="fault_family_final",
+        orientation="h",
+        title=f"Fault Family Mix: {selected_account_name}",
+        hover_data=[
+            "mantraps",
+            "mantrap_rate_pct",
+            "unique_equipment",
+            "median_response_minutes",
+            "median_repair_minutes",
+        ],
+        color="mantraps",
+        color_continuous_scale="Reds",
+    )
+
+    figure.update_xaxes(title_text="Callbacks")
+    figure.update_yaxes(title_text="Fault Family")
+
+    return apply_dark_chart_layout(figure, height=460)

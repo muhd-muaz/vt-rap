@@ -49,12 +49,16 @@ def main() -> None:
     with equipment_tab:
         render_equipment_risk(
             equipment_risk_model=dashboard_data["equipment_risk_model"],
+            monthly_equipment_trend=dashboard_data["monthly_equipment_trend"],
+            equipment_fault_family_mix=dashboard_data["equipment_fault_family_mix"],
         )
 
     with account_tab:
         render_account_risk(
             account_risk_model=dashboard_data["account_risk_model"],
             monthly_account_trend=dashboard_data["monthly_account_trend"],
+            equipment_risk_model=dashboard_data["equipment_risk_model"],
+            account_fault_family_mix=dashboard_data["account_fault_family_mix"],
         )
 
     with fault_tab:

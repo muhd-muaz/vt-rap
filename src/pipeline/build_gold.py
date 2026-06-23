@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 
 from src.models.risk_scoring import (
+    build_account_fault_family_mix,
     build_account_risk_model,
     build_analysis_callbacks,
     build_data_quality_summary,
@@ -49,7 +50,11 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     )
     monthly_account_trend = build_monthly_account_trend(analysis_callbacks)
     monthly_equipment_trend = build_monthly_equipment_trend(analysis_callbacks)
+
     equipment_fault_family_mix = build_equipment_fault_family_mix(
+        analysis_callbacks
+    )
+    account_fault_family_mix = build_account_fault_family_mix(
         analysis_callbacks
     )
 
@@ -66,4 +71,5 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
         "monthly_account_trend": monthly_account_trend,
         "monthly_equipment_trend": monthly_equipment_trend,
         "equipment_fault_family_mix": equipment_fault_family_mix,
+        "account_fault_family_mix": account_fault_family_mix,
     }

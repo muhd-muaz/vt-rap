@@ -59,4 +59,7 @@ def load_dashboard_data() -> dict[str, pd.DataFrame]:
         "equipment_fault_family_mix": load_processed_table(
             "equipment_fault_family_mix.csv"
         ),
+        "account_fault_family_mix": load_processed_table(
+            "account_fault_family_mix.csv"
+        ),
     }

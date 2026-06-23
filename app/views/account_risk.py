@@ -4,13 +4,18 @@ import pandas as pd
 import streamlit as st
 
 from components.cards import render_command_card
-from components.charts import build_account_monthly_chart
+from components.charts import (
+    build_account_fault_mix_chart,
+    build_account_monthly_chart,
+)
 from components.tables import format_table_for_display
 
 
 def render_account_risk(
     account_risk_model: pd.DataFrame,
     monthly_account_trend: pd.DataFrame,
+    equipment_risk_model: pd.DataFrame,
+    account_fault_family_mix: pd.DataFrame,
 ) -> None:
     """Render account risk tab."""
     st.subheader("Account Risk Command View")
@@ -37,11 +42,11 @@ def render_account_risk(
         hide_index=True,
     )
 
-    st.markdown("### Account Detail Trend")
+    st.markdown("### Account Detail Drilldown")
 
     selected_account = st.selectbox(
         "Select account",
-        options=account_risk_model["account_name_raw"].head(200).tolist(),
+        options=account_risk_model["account_name_raw"].head(300).tolist(),
     )
 
     selected_row = account_risk_model[
@@ -80,8 +85,72 @@ def render_account_risk(
 
     st.info(str(selected_row["risk_explanation"]))
 
-    st.plotly_chart(
-        build_account_monthly_chart(monthly_account_trend, selected_account),
+    chart_left, chart_right = st.columns(2)
+
+    with chart_left:
+        st.plotly_chart(
+            build_account_monthly_chart(
+                monthly_account_trend=monthly_account_trend,
+                selected_account_name=selected_account,
+            ),
+            use_container_width=True,
+            key="account_detail_monthly_chart",
+        )
+
+    with chart_right:
+        st.plotly_chart(
+            build_account_fault_mix_chart(
+                account_fault_family_mix=account_fault_family_mix,
+                selected_account_name=selected_account,
+            ),
+            use_container_width=True,
+            key="account_fault_mix_chart",
+        )
+
+    st.markdown("### Equipment Under Selected Account")
+
+    account_equipment = equipment_risk_model[
+        equipment_risk_model["account_name_raw"].eq(selected_account)
+    ].copy()
+
+    equipment_columns = [
+        "equipment_description_raw",
+        "equipment_type",
+        "callbacks",
+        "mantraps",
+        "mantrap_rate_pct",
+        "callbacks_last_365_days",
+        "mantraps_last_365_days",
+        "equipment_risk_score_v3",
+        "risk_tier",
+        "primary_risk_driver",
+        "risk_explanation",
+    ]
+
+    st.dataframe(
+        format_table_for_display(account_equipment[equipment_columns].head(100)),
         use_container_width=True,
-        key="account_detail_monthly_chart",
+        hide_index=True,
+    )
+
+    st.markdown("### Account Fault Family Detail")
+
+    account_fault_rows = account_fault_family_mix[
+        account_fault_family_mix["account_name_raw"].eq(selected_account)
+    ]
+
+    fault_columns = [
+        "fault_family_final",
+        "callbacks",
+        "mantraps",
+        "mantrap_rate_pct",
+        "unique_equipment",
+        "median_response_minutes",
+        "median_repair_minutes",
+    ]
+
+    st.dataframe(
+        format_table_for_display(account_fault_rows[fault_columns]),
+        use_container_width=True,
+        hide_index=True,
     )
