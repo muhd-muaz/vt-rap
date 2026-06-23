@@ -10,7 +10,195 @@ from components.charts import (
     build_monthly_response_repair_chart,
     build_top_account_chart,
 )
-from components.tables import format_table_for_display
+
+
+def render_section_header(title: str, subtitle: str) -> None:
+    """Render a clean section heading."""
+    st.markdown(
+        f"""
+        <div class="section-header">
+            <div class="section-title">{title}</div>
+            <div class="section-subtitle">{subtitle}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_management_interpretation(
+    executive_summary: pd.DataFrame,
+    fault_family_summary: pd.DataFrame,
+    equipment_risk_model: pd.DataFrame,
+    account_risk_model: pd.DataFrame,
+    emerging_equipment_alerts: pd.DataFrame,
+) -> None:
+    """Render concise management interpretation for the current period."""
+    total_callbacks = get_summary_value(executive_summary, "total_callbacks")
+    total_mantraps = get_summary_value(executive_summary, "total_mantraps")
+    median_response = get_summary_value(
+        executive_summary,
+        "median_response_minutes",
+    )
+    median_repair = get_summary_value(
+        executive_summary,
+        "median_repair_minutes",
+    )
+
+    top_fault_family = "-"
+    if not fault_family_summary.empty:
+        top_fault_family = fault_family_summary.iloc[0]["fault_family_final"]
+
+    critical_equipment = 0
+    if "risk_tier" in equipment_risk_model.columns:
+        critical_equipment = int(
+            equipment_risk_model["risk_tier"].eq("Critical").sum()
+        )
+
+    critical_accounts = 0
+    if "risk_tier" in account_risk_model.columns:
+        critical_accounts = int(
+            account_risk_model["risk_tier"].eq("Critical").sum()
+        )
+
+    emerging_count = len(emerging_equipment_alerts)
+
+    st.markdown(
+        f"""
+        <div class="insight-panel">
+            <div class="insight-panel-title">Management interpretation</div>
+            <div class="insight-grid">
+                <div>
+                    <span>Current workload</span>
+                    <strong>{total_callbacks}</strong>
+                    <p>Total callbacks in the selected analysis period.</p>
+                </div>
+                <div>
+                    <span>Mantrap exposure</span>
+                    <strong>{total_mantraps}</strong>
+                    <p>Callback events marked as mantrap-related.</p>
+                </div>
+                <div>
+                    <span>Dominant fault family</span>
+                    <strong>{top_fault_family}</strong>
+                    <p>Highest-volume grouped fault family.</p>
+                </div>
+                <div>
+                    <span>Service timing</span>
+                    <strong>{median_response} / {median_repair} min</strong>
+                    <p>Median response and repair duration.</p>
+                </div>
+                <div>
+                    <span>Critical equipment</span>
+                    <strong>{critical_equipment:,}</strong>
+                    <p>Equipment currently classified as critical risk.</p>
+                </div>
+                <div>
+                    <span>Critical accounts</span>
+                    <strong>{critical_accounts:,}</strong>
+                    <p>Accounts currently classified as critical risk.</p>
+                </div>
+                <div>
+                    <span>Emerging alerts</span>
+                    <strong>{emerging_count:,}</strong>
+                    <p>Low-history equipment with early warning signals.</p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_top_tables(
+    equipment_risk_model: pd.DataFrame,
+    account_risk_model: pd.DataFrame,
+    emerging_equipment_alerts: pd.DataFrame,
+) -> None:
+    """Render compact top-risk tables."""
+    table_col_1, table_col_2 = st.columns(2)
+
+    with table_col_1:
+        render_section_header(
+            title="Highest-risk equipment",
+            subtitle="Top equipment ranked by risk score for the selected period.",
+        )
+
+        equipment_columns = [
+            "equipment_description_raw",
+            "account_name_raw",
+            "equipment_type",
+            "callbacks",
+            "mantraps",
+            "equipment_risk_score_v3",
+            "risk_tier",
+            "primary_risk_driver",
+        ]
+
+        available_equipment_columns = [
+            column for column in equipment_columns
+            if column in equipment_risk_model.columns
+        ]
+
+        st.dataframe(
+            equipment_risk_model[available_equipment_columns].head(12),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    with table_col_2:
+        render_section_header(
+            title="Highest-risk accounts",
+            subtitle="Top accounts ranked by operational risk score.",
+        )
+
+        account_columns = [
+            "account_name_raw",
+            "callbacks",
+            "mantraps",
+            "unique_equipment",
+            "account_risk_score",
+            "risk_tier",
+            "primary_risk_driver",
+        ]
+
+        available_account_columns = [
+            column for column in account_columns
+            if column in account_risk_model.columns
+        ]
+
+        st.dataframe(
+            account_risk_model[available_account_columns].head(12),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    render_section_header(
+        title="Emerging equipment alerts",
+        subtitle="Equipment with limited history but meaningful recent warning signals.",
+    )
+
+    emerging_columns = [
+        "equipment_description_raw",
+        "account_name_raw",
+        "equipment_type",
+        "callbacks",
+        "mantraps",
+        "recent_90d_callbacks",
+        "recent_90d_mantraps",
+        "equipment_risk_score_v3",
+        "primary_risk_driver",
+    ]
+
+    available_emerging_columns = [
+        column for column in emerging_columns
+        if column in emerging_equipment_alerts.columns
+    ]
+
+    st.dataframe(
+        emerging_equipment_alerts[available_emerging_columns].head(15),
+        use_container_width=True,
+        hide_index=True,
+    )
 
 
 def render_executive_overview(
@@ -21,130 +209,83 @@ def render_executive_overview(
     emerging_equipment_alerts: pd.DataFrame,
     monthly_callback_trend: pd.DataFrame,
 ) -> None:
-    """Render executive overview tab."""
-    st.subheader("Executive Overview")
-
-    kpi_1, kpi_2, kpi_3, kpi_4 = st.columns(4)
-
-    with kpi_1:
-        render_command_card(
-            "Completed / Verified Callbacks",
-            get_summary_value(executive_summary, "Completed / verified callbacks"),
-            "Clean operational records used for management analytics.",
-        )
-
-    with kpi_2:
-        render_command_card(
-            "Total Mantraps",
-            get_summary_value(executive_summary, "Total mantraps"),
-            "Trapped-passenger related callback events.",
-        )
-
-    with kpi_3:
-        render_command_card(
-            "Median Response",
-            f"{get_summary_value(executive_summary, 'Median response minutes')} min",
-            "Median time from realised event to attendance.",
-        )
-
-    with kpi_4:
-        render_command_card(
-            "Median Repair",
-            f"{get_summary_value(executive_summary, 'Median repair minutes')} min",
-            "Median time from attendance to completion.",
-        )
-
-    risk_1, risk_2, risk_3, risk_4 = st.columns(4)
-
-    critical_count = int(
-        equipment_risk_model["risk_tier"].astype(str).eq("Critical").sum()
-    )
-    high_count = int(equipment_risk_model["risk_tier"].astype(str).eq("High").sum())
-    emerging_count = len(emerging_equipment_alerts)
-    unclassified_count = int(
-        fault_family_summary.loc[
-            fault_family_summary["fault_family_final"].eq("Unclassified"),
-            "callbacks",
-        ].sum()
+    """Render the executive overview dashboard page."""
+    render_section_header(
+        title="Executive Overview",
+        subtitle="A management-level summary of callback volume, mantrap exposure, response timing, and reliability risk.",
     )
 
-    with risk_1:
+    kpi_col_1, kpi_col_2, kpi_col_3, kpi_col_4 = st.columns(4)
+
+    with kpi_col_1:
         render_command_card(
-            "Critical Equipment",
-            f"{critical_count:,}",
-            "Established assets with the highest risk scores.",
+            title="Total Callbacks",
+            value=get_summary_value(executive_summary, "total_callbacks"),
+            caption="All callback records in the selected period.",
         )
 
-    with risk_2:
+    with kpi_col_2:
         render_command_card(
-            "High-Risk Equipment",
-            f"{high_count:,}",
-            "Assets requiring operational monitoring.",
+            title="Completed / Verified",
+            value=get_summary_value(
+                executive_summary,
+                "completed_or_verified_callbacks",
+            ),
+            caption="Records used for operational analysis.",
         )
 
-    with risk_3:
+    with kpi_col_3:
         render_command_card(
-            "Emerging Alerts",
-            f"{emerging_count:,}",
-            "Low-history assets with early mantrap signals.",
+            title="Total Mantraps",
+            value=get_summary_value(executive_summary, "total_mantraps"),
+            caption="Callback events flagged as mantrap.",
         )
 
-    with risk_4:
+    with kpi_col_4:
         render_command_card(
-            "Unclassified Faults",
-            f"{unclassified_count:,}",
-            "Callbacks without mapped recorded fault code.",
+            title="Median Response",
+            value=f"{get_summary_value(executive_summary, 'median_response_minutes')} min",
+            caption="Median time from event to attendance.",
         )
 
-    chart_left, chart_right = st.columns(2)
+    trend_col_1, trend_col_2 = st.columns(2)
 
-    with chart_left:
+    with trend_col_1:
         st.plotly_chart(
             build_monthly_callback_chart(monthly_callback_trend),
             use_container_width=True,
-            key="overview_monthly_callback_chart",
         )
 
-    with chart_right:
+    with trend_col_2:
         st.plotly_chart(
             build_monthly_response_repair_chart(monthly_callback_trend),
             use_container_width=True,
-            key="overview_monthly_response_repair_chart",
         )
 
-    st.plotly_chart(
-        build_fault_family_chart(fault_family_summary),
-        use_container_width=True,
-        key="overview_fault_family_chart",
-    )
+    analysis_col_1, analysis_col_2 = st.columns([1.05, 1])
 
-    left_column, right_column = st.columns(2)
-
-    with left_column:
-        st.markdown("### Top Equipment Risk")
-        equipment_columns = [
-            "equipment_description_raw",
-            "account_name_raw",
-            "equipment_type",
-            "callbacks",
-            "mantraps",
-            "callbacks_last_365_days",
-            "mantraps_last_365_days",
-            "equipment_risk_score_v3",
-            "risk_tier",
-            "primary_risk_driver",
-        ]
-
-        st.dataframe(
-            format_table_for_display(equipment_risk_model[equipment_columns].head(15)),
+    with analysis_col_1:
+        st.plotly_chart(
+            build_fault_family_chart(fault_family_summary),
             use_container_width=True,
-            hide_index=True,
         )
 
-    with right_column:
-        st.markdown("### Top Account Risk")
+    with analysis_col_2:
         st.plotly_chart(
             build_top_account_chart(account_risk_model),
             use_container_width=True,
-            key="overview_top_account_chart",
         )
+
+    render_management_interpretation(
+        executive_summary=executive_summary,
+        fault_family_summary=fault_family_summary,
+        equipment_risk_model=equipment_risk_model,
+        account_risk_model=account_risk_model,
+        emerging_equipment_alerts=emerging_equipment_alerts,
+    )
+
+    render_top_tables(
+        equipment_risk_model=equipment_risk_model,
+        account_risk_model=account_risk_model,
+        emerging_equipment_alerts=emerging_equipment_alerts,
+    )
