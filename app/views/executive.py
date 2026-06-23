@@ -33,20 +33,25 @@ def render_management_interpretation(
     emerging_equipment_alerts: pd.DataFrame,
 ) -> None:
     """Render concise management interpretation for the current period."""
-    total_callbacks = get_summary_value(executive_summary, "total_callbacks")
-    total_mantraps = get_summary_value(executive_summary, "total_mantraps")
+    analyzed_callbacks = get_summary_value(
+        executive_summary,
+        "Completed / verified callbacks",
+    )
+    total_mantraps = get_summary_value(executive_summary, "Total mantraps")
     median_response = get_summary_value(
         executive_summary,
-        "median_response_minutes",
+        "Median response minutes",
     )
     median_repair = get_summary_value(
         executive_summary,
-        "median_repair_minutes",
+        "Median repair minutes",
     )
+    top_fault_family = get_summary_value(executive_summary, "Top fault family")
+    top_risk_account = get_summary_value(executive_summary, "Top risk account")
+    top_risk_equipment = get_summary_value(executive_summary, "Top risk equipment")
 
-    top_fault_family = "-"
-    if not fault_family_summary.empty:
-        top_fault_family = fault_family_summary.iloc[0]["fault_family_final"]
+    if top_fault_family == "-" and not fault_family_summary.empty:
+        top_fault_family = str(fault_family_summary.iloc[0]["fault_family_final"])
 
     critical_equipment = 0
     if "risk_tier" in equipment_risk_model.columns:
@@ -68,9 +73,9 @@ def render_management_interpretation(
             <div class="insight-panel-title">Management interpretation</div>
             <div class="insight-grid">
                 <div>
-                    <span>Current workload</span>
-                    <strong>{total_callbacks}</strong>
-                    <p>Total callbacks in the selected analysis period.</p>
+                    <span>Analyzed workload</span>
+                    <strong>{analyzed_callbacks}</strong>
+                    <p>Completed or verified callbacks used for operational analysis.</p>
                 </div>
                 <div>
                     <span>Mantrap exposure</span>
@@ -86,6 +91,16 @@ def render_management_interpretation(
                     <span>Service timing</span>
                     <strong>{median_response} / {median_repair} min</strong>
                     <p>Median response and repair duration.</p>
+                </div>
+                <div>
+                    <span>Top risk account</span>
+                    <strong>{top_risk_account}</strong>
+                    <p>Account with the highest risk score in the selected period.</p>
+                </div>
+                <div>
+                    <span>Top risk equipment</span>
+                    <strong>{top_risk_equipment}</strong>
+                    <p>Equipment with the highest risk score in the selected period.</p>
                 </div>
                 <div>
                     <span>Critical equipment</span>
@@ -135,7 +150,8 @@ def render_top_tables(
         ]
 
         available_equipment_columns = [
-            column for column in equipment_columns
+            column
+            for column in equipment_columns
             if column in equipment_risk_model.columns
         ]
 
@@ -162,7 +178,8 @@ def render_top_tables(
         ]
 
         available_account_columns = [
-            column for column in account_columns
+            column
+            for column in account_columns
             if column in account_risk_model.columns
         ]
 
@@ -190,7 +207,8 @@ def render_top_tables(
     ]
 
     available_emerging_columns = [
-        column for column in emerging_columns
+        column
+        for column in emerging_columns
         if column in emerging_equipment_alerts.columns
     ]
 
@@ -212,40 +230,75 @@ def render_executive_overview(
     """Render the executive overview dashboard page."""
     render_section_header(
         title="Executive Overview",
-        subtitle="A management-level summary of callback volume, mantrap exposure, response timing, and reliability risk.",
+        subtitle=(
+            "A management-level summary of analyzed callback volume, "
+            "mantrap exposure, response timing, and reliability risk."
+        ),
     )
 
     kpi_col_1, kpi_col_2, kpi_col_3, kpi_col_4 = st.columns(4)
 
     with kpi_col_1:
         render_command_card(
-            title="Total Callbacks",
-            value=get_summary_value(executive_summary, "total_callbacks"),
-            caption="All callback records in the selected period.",
+            title="Analyzed Callbacks",
+            value=get_summary_value(
+                executive_summary,
+                "Completed / verified callbacks",
+            ),
+            caption="Completed or verified callback records used for operational analysis.",
         )
 
     with kpi_col_2:
         render_command_card(
-            title="Completed / Verified",
-            value=get_summary_value(
-                executive_summary,
-                "completed_or_verified_callbacks",
-            ),
-            caption="Records used for operational analysis.",
+            title="Unique Accounts",
+            value=get_summary_value(executive_summary, "Unique accounts"),
+            caption="Customer accounts represented in the selected period.",
         )
 
     with kpi_col_3:
         render_command_card(
             title="Total Mantraps",
-            value=get_summary_value(executive_summary, "total_mantraps"),
+            value=get_summary_value(executive_summary, "Total mantraps"),
             caption="Callback events flagged as mantrap.",
         )
 
     with kpi_col_4:
         render_command_card(
             title="Median Response",
-            value=f"{get_summary_value(executive_summary, 'median_response_minutes')} min",
+            value=(
+                f"{get_summary_value(executive_summary, 'Median response minutes')} min"
+            ),
             caption="Median time from event to attendance.",
+        )
+
+    secondary_col_1, secondary_col_2, secondary_col_3, secondary_col_4 = st.columns(4)
+
+    with secondary_col_1:
+        render_command_card(
+            title="Unique Equipment",
+            value=get_summary_value(executive_summary, "Unique equipment"),
+            caption="Equipment units represented in the analysis base.",
+        )
+
+    with secondary_col_2:
+        render_command_card(
+            title="Median Repair",
+            value=f"{get_summary_value(executive_summary, 'Median repair minutes')} min",
+            caption="Median time from attendance to completion.",
+        )
+
+    with secondary_col_3:
+        render_command_card(
+            title="Top Fault Family",
+            value=get_summary_value(executive_summary, "Top fault family"),
+            caption="Highest-volume grouped fault family.",
+        )
+
+    with secondary_col_4:
+        render_command_card(
+            title="Top Risk Account",
+            value=get_summary_value(executive_summary, "Top risk account"),
+            caption="Account with the highest operational risk score.",
         )
 
     trend_col_1, trend_col_2 = st.columns(2)
@@ -261,6 +314,7 @@ def render_executive_overview(
         st.plotly_chart(
             build_monthly_response_repair_chart(monthly_callback_trend),
             width="stretch",
+            key="executive_monthly_response_repair_chart",
         )
 
     analysis_col_1, analysis_col_2 = st.columns([1.05, 1])
@@ -269,7 +323,7 @@ def render_executive_overview(
         st.plotly_chart(
             build_fault_family_chart(fault_family_summary),
             width="stretch",
-
+            key="executive_fault_family_chart",
         )
 
     with analysis_col_2:
