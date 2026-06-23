@@ -474,3 +474,15 @@ hr {
         grid-template-columns: 1fr;
     }
 }
+
+div[data-testid="stDataFrame"] {
+    margin-bottom: 22px;
+}
+
+div[data-testid="stVerticalBlock"] > div:has(.section-header) {
+    margin-top: 4px;
+}
+
+.stMultiSelect {
+    margin-bottom: 12px;
+}
