@@ -38,13 +38,25 @@ def render_command_card(title: str, value: str, caption: str = "") -> None:
         unsafe_allow_html=True,
     )
 
-def render_metadata_header(metadata: dict) -> None:
+
+def render_metadata_header(metadata: dict, period_context: dict | None = None) -> None:
     """Render pipeline metadata summary below the dashboard title."""
     run_timestamp = metadata.get("run_timestamp", "Not available")
     latest_event_month = metadata.get("latest_event_month", "-")
     raw_callback_file_count = metadata.get("raw_callback_file_count", "-")
     callbacks_raw_rows = metadata.get("callbacks_raw_rows", "-")
     validation_status = metadata.get("validation_status", "Not available")
+
+    period_label = "-"
+    filtered_rows = "-"
+    completed_rows = "-"
+    mantraps = "-"
+
+    if period_context:
+        period_label = period_context.get("period_label", "-")
+        filtered_rows = f"{period_context.get('filtered_rows', 0):,}"
+        completed_rows = f"{period_context.get('completed_or_verified_rows', 0):,}"
+        mantraps = f"{period_context.get('mantraps', 0):,}"
 
     st.markdown(
         f"""
@@ -56,6 +68,11 @@ def render_metadata_header(metadata: dict) -> None:
                 Raw callback files: <b>{raw_callback_file_count}</b> &nbsp; | &nbsp;
                 Raw rows: <b>{callbacks_raw_rows}</b> &nbsp; | &nbsp;
                 Validation: <b>{validation_status}</b>
+                <br><br>
+                Current period: <b>{period_label}</b> &nbsp; | &nbsp;
+                Filtered rows: <b>{filtered_rows}</b> &nbsp; | &nbsp;
+                Completed/verified: <b>{completed_rows}</b> &nbsp; | &nbsp;
+                Mantraps: <b>{mantraps}</b>
             </div>
         </div>
         """,

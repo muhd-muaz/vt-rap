@@ -32,7 +32,7 @@ def load_processed_table(file_name: str) -> pd.DataFrame:
             "Run `python scripts/run_pipeline.py` first."
         )
 
-    return pd.read_csv(file_path)
+    return pd.read_csv(file_path, low_memory=False)
 
 
 @st.cache_data
@@ -56,32 +56,8 @@ def load_pipeline_metadata() -> dict:
 
 
 def load_dashboard_data() -> dict[str, pd.DataFrame | dict]:
-    """Load all processed tables required by the dashboard."""
+    """Load base processed data required by the dashboard."""
     return {
         "metadata": load_pipeline_metadata(),
-        "executive_summary": load_processed_table("executive_summary.csv"),
-        "fault_family_summary": load_processed_table("fault_family_summary.csv"),
-        "equipment_risk_model": load_processed_table("equipment_risk_model.csv"),
-        "account_risk_model": load_processed_table("account_risk_model.csv"),
-        "emerging_equipment_alerts": load_processed_table(
-            "emerging_equipment_alerts.csv"
-        ),
-        "data_quality_summary": load_processed_table("data_quality_summary.csv"),
-        "monthly_callback_trend": load_processed_table("monthly_callback_trend.csv"),
-        "monthly_fault_family_trend": load_processed_table(
-            "monthly_fault_family_trend.csv"
-        ),
-        "monthly_equipment_type_trend": load_processed_table(
-            "monthly_equipment_type_trend.csv"
-        ),
-        "monthly_account_trend": load_processed_table("monthly_account_trend.csv"),
-        "monthly_equipment_trend": load_processed_table(
-            "monthly_equipment_trend.csv"
-        ),
-        "equipment_fault_family_mix": load_processed_table(
-            "equipment_fault_family_mix.csv"
-        ),
-        "account_fault_family_mix": load_processed_table(
-            "account_fault_family_mix.csv"
-        ),
+        "silver_callbacks": load_processed_table("silver_callbacks.csv"),
     }

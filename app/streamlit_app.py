@@ -2,8 +2,13 @@ from __future__ import annotations
 
 import streamlit as st
 
+from services.theme import get_theme, inject_theme_css
 from components.cards import render_metadata_header
 from services.data_loader import load_css, load_dashboard_data
+from services.filtering import (
+    build_filtered_dashboard_tables,
+    render_period_filter,
+)
 from views.account_risk import render_account_risk
 from views.data_quality import render_data_quality
 from views.emerging_alerts import render_emerging_alerts
@@ -19,13 +24,26 @@ def main() -> None:
         layout="wide",
     )
 
+    active_theme = get_theme()
+    inject_theme_css(active_theme)
     load_css()
 
     st.title("VT-RAP Command Center")
     st.caption("Vertical Transport Reliability Analytics Platform")
 
-    dashboard_data = load_dashboard_data()
-    render_metadata_header(dashboard_data["metadata"])
+    base_data = load_dashboard_data()
+
+    filtered_silver_callbacks, period_context = render_period_filter(
+        base_data["silver_callbacks"]
+    )
+
+    dashboard_data = build_filtered_dashboard_tables(filtered_silver_callbacks)
+    dashboard_data["metadata"] = base_data["metadata"]
+
+    render_metadata_header(
+        metadata=dashboard_data["metadata"],
+        period_context=period_context,
+    )
 
     overview_tab, equipment_tab, account_tab, fault_tab, emerging_tab, quality_tab = st.tabs(
         [
