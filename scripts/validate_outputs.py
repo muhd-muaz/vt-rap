@@ -135,11 +135,19 @@ def main() -> None:
 
     print("Loading processed tables...")
 
-    callbacks_raw = pd.read_csv(PROCESSED_DIR / "callbacks_raw.csv")
-    silver_callbacks = pd.read_csv(PROCESSED_DIR / "silver_callbacks.csv")
-    equipment_risk_model = pd.read_csv(PROCESSED_DIR / "equipment_risk_model.csv")
-    account_risk_model = pd.read_csv(PROCESSED_DIR / "account_risk_model.csv")
-    data_quality_summary = pd.read_csv(PROCESSED_DIR / "data_quality_summary.csv")
+    callbacks_raw = pd.read_csv(
+    PROCESSED_DIR / "callbacks_raw.csv",
+    low_memory=False,
+    )
+
+    silver_callbacks = pd.read_csv(
+    PROCESSED_DIR / "silver_callbacks.csv",
+    low_memory=False,
+    )
+    
+    equipment_risk_model = pd.read_csv(PROCESSED_DIR / "equipment_risk_model.csv", low_memory=False)
+    account_risk_model = pd.read_csv(PROCESSED_DIR / "account_risk_model.csv", low_memory=False)
+    data_quality_summary = pd.read_csv(PROCESSED_DIR / "data_quality_summary.csv", low_memory=False)
 
     print("Validating row counts and key metrics...")
 
