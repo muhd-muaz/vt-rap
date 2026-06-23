@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+import pandas as pd
+
+from src.models.risk_scoring import (
+    build_account_risk_model,
+    build_analysis_callbacks,
+    build_data_quality_summary,
+    build_emerging_equipment_alerts,
+    build_equipment_risk_model,
+    build_executive_summary,
+    build_fault_family_summary,
+)
+
+
+def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """Build management-ready gold tables."""
+    analysis_callbacks = build_analysis_callbacks(silver_callbacks)
+
+    fault_family_summary = build_fault_family_summary(analysis_callbacks)
+    equipment_risk_model = build_equipment_risk_model(analysis_callbacks)
+    account_risk_model = build_account_risk_model(analysis_callbacks)
+    emerging_equipment_alerts = build_emerging_equipment_alerts(
+        equipment_risk_model
+    )
+    executive_summary = build_executive_summary(
+        analysis_callbacks=analysis_callbacks,
+        fault_family_summary=fault_family_summary,
+        equipment_risk_model=equipment_risk_model,
+        account_risk_model=account_risk_model,
+    )
+    data_quality_summary = build_data_quality_summary(silver_callbacks)
+
+    return {
+        "fault_family_summary": fault_family_summary,
+        "equipment_risk_model": equipment_risk_model,
+        "account_risk_model": account_risk_model,
+        "emerging_equipment_alerts": emerging_equipment_alerts,
+        "executive_summary": executive_summary,
+        "data_quality_summary": data_quality_summary,
+    }

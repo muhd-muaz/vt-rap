@@ -1,0 +1,9 @@
+[project]
+name = "vt-rap"
+version = "0.1.0"
+description = "Vertical Transport Reliability Analytics Platform"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

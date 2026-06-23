@@ -1,0 +1,11 @@
+pandas
+numpy
+openpyxl
+lxml
+html5lib
+beautifulsoup4
+pyarrow
+streamlit
+plotly
+python-dotenv
+pydantic
