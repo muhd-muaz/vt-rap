@@ -8,19 +8,7 @@ from components.charts import (
     build_account_fault_mix_chart,
     build_account_monthly_chart,
 )
-
-
-def render_section_header(title: str, subtitle: str) -> None:
-    """Render a clean section heading."""
-    st.markdown(
-        f"""
-        <div class="section-header">
-            <div class="section-title">{title}</div>
-            <div class="section-subtitle">{subtitle}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+from components.layout import render_section_header
 
 
 def get_available_risk_tiers(account_risk_model: pd.DataFrame) -> list[str]:
@@ -188,8 +176,7 @@ def render_account_risk_table(filtered_accounts: pd.DataFrame) -> None:
     ]
 
     available_columns = [
-        column for column in display_columns
-        if column in filtered_accounts.columns
+        column for column in display_columns if column in filtered_accounts.columns
     ]
 
     st.dataframe(
@@ -286,8 +273,7 @@ def render_account_equipment_table(
     ]
 
     available_columns = [
-        column for column in display_columns
-        if column in account_equipment.columns
+        column for column in display_columns if column in account_equipment.columns
     ]
 
     st.dataframe(

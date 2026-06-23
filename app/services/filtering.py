@@ -8,7 +8,6 @@ import streamlit as st
 
 from src.pipeline.build_gold import build_gold_tables
 
-
 DATETIME_COLUMNS = [
     "Created",
     "event_at",
@@ -41,8 +40,7 @@ def get_available_years(silver_callbacks: pd.DataFrame) -> list[int]:
     return (
         silver_callbacks["event_at"]
         .dropna()
-        .dt.year
-        .astype(int)
+        .dt.year.astype(int)
         .drop_duplicates()
         .sort_values()
         .tolist()
@@ -60,8 +58,7 @@ def get_available_months_for_year(
             "event_at",
         ]
         .dropna()
-        .dt.month
-        .astype(int)
+        .dt.month.astype(int)
         .drop_duplicates()
         .sort_values()
         .tolist()
@@ -95,7 +92,11 @@ def filter_silver_callbacks_by_period(
             & silver_callbacks["event_at"].dt.month.eq(selected_month)
         ].copy()
 
-    if filter_mode == "Custom Range" and start_date is not None and end_date is not None:
+    if (
+        filter_mode == "Custom Range"
+        and start_date is not None
+        and end_date is not None
+    ):
         start_timestamp = pd.Timestamp(start_date)
         end_timestamp = pd.Timestamp(end_date) + pd.Timedelta(days=1)
 
@@ -121,10 +122,18 @@ def build_period_label(
     if filter_mode == "Year" and selected_year is not None:
         return str(selected_year)
 
-    if filter_mode == "Month" and selected_year is not None and selected_month is not None:
+    if (
+        filter_mode == "Month"
+        and selected_year is not None
+        and selected_month is not None
+    ):
         return f"{calendar.month_name[selected_month]} {selected_year}"
 
-    if filter_mode == "Custom Range" and start_date is not None and end_date is not None:
+    if (
+        filter_mode == "Custom Range"
+        and start_date is not None
+        and end_date is not None
+    ):
         return f"{start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}"
 
     return "All time"
@@ -311,9 +320,7 @@ def render_period_filter(
     )
 
     completed_or_verified_rows = int(
-        filtered_callbacks["analysis_status_group"]
-        .eq("completed_or_verified")
-        .sum()
+        filtered_callbacks["analysis_status_group"].eq("completed_or_verified").sum()
     )
 
     mantraps = int(filtered_callbacks["mantrap_flag"].sum())
@@ -333,6 +340,7 @@ def render_period_filter(
     render_period_summary_cards(context)
 
     return filtered_callbacks, context
+
 
 def build_filtered_dashboard_tables(
     filtered_silver_callbacks: pd.DataFrame,

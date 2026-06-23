@@ -4,19 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from components.cards import render_command_card
-
-
-def render_section_header(title: str, subtitle: str) -> None:
-    """Render a clean section heading."""
-    st.markdown(
-        f"""
-        <div class="section-header">
-            <div class="section-title">{title}</div>
-            <div class="section-subtitle">{subtitle}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+from components.layout import render_section_header
 
 
 def render_emerging_overview_cards(
@@ -230,8 +218,7 @@ def render_emerging_alert_table(filtered_alerts: pd.DataFrame) -> None:
     ]
 
     available_columns = [
-        column for column in display_columns
-        if column in filtered_alerts.columns
+        column for column in display_columns if column in filtered_alerts.columns
     ]
 
     st.dataframe(

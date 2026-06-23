@@ -12,19 +12,7 @@ from components.charts import (
     build_fault_family_chart,
     build_fault_family_trend_chart,
 )
-
-
-def render_section_header(title: str, subtitle: str) -> None:
-    """Render a clean section heading."""
-    st.markdown(
-        f"""
-        <div class="section-header">
-            <div class="section-title">{title}</div>
-            <div class="section-subtitle">{subtitle}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+from components.layout import render_section_header
 
 
 def get_top_fault_family(fault_family_summary: pd.DataFrame) -> str:
@@ -179,12 +167,12 @@ def render_fault_family_tab(
 
     st.plotly_chart(
         build_fault_family_trend_chart(
-          monthly_fault_family_trend=monthly_fault_family_trend,
-         selected_fault_families=selected_fault_families,
-    ),
-    width="stretch",
-    key="fault_analysis_family_trend_chart",
-)
+            monthly_fault_family_trend=monthly_fault_family_trend,
+            selected_fault_families=selected_fault_families,
+        ),
+        width="stretch",
+        key="fault_analysis_family_trend_chart",
+    )
 
 
 def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
@@ -229,8 +217,7 @@ def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
     ]
 
     available_columns = [
-        column for column in display_columns
-        if column in fault_code_summary.columns
+        column for column in display_columns if column in fault_code_summary.columns
     ]
 
     st.dataframe(

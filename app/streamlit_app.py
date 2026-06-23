@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import streamlit as st
+import views.executive as executive_debug
 
 from services.theme import get_theme, inject_theme_css
 from components.cards import render_app_header, render_metadata_header
@@ -27,6 +28,7 @@ def main() -> None:
     active_theme = get_theme()
     inject_theme_css(active_theme)
     load_css()
+    st.caption(f"Executive module loaded from: {executive_debug.__file__}")
 
     render_app_header()
 
@@ -44,15 +46,17 @@ def main() -> None:
         period_context=period_context,
     )
 
-    overview_tab, equipment_tab, account_tab, fault_tab, emerging_tab, quality_tab = st.tabs(
-        [
-            "Executive Overview",
-            "Equipment Risk",
-            "Account Risk",
-            "Fault Analysis",
-            "Emerging Alerts",
-            "Data Quality",
-        ]
+    overview_tab, equipment_tab, account_tab, fault_tab, emerging_tab, quality_tab = (
+        st.tabs(
+            [
+                "Executive Overview",
+                "Equipment Risk",
+                "Account Risk",
+                "Fault Analysis",
+                "Emerging Alerts",
+                "Data Quality",
+            ]
+        )
     )
 
     with overview_tab:
@@ -86,8 +90,7 @@ def main() -> None:
             fault_code_summary=dashboard_data["fault_code_summary"],
             monthly_fault_family_trend=dashboard_data["monthly_fault_family_trend"],
             monthly_fault_code_trend=dashboard_data["monthly_fault_code_trend"],
-            monthly_equipment_type_trend=dashboard_data[
-                "monthly_equipment_type_trend"],
+            monthly_equipment_type_trend=dashboard_data["monthly_equipment_type_trend"],
         )
 
     with emerging_tab:

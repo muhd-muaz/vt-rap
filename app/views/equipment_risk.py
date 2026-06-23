@@ -8,19 +8,7 @@ from components.charts import (
     build_equipment_fault_mix_chart,
     build_equipment_monthly_chart,
 )
-
-
-def render_section_header(title: str, subtitle: str) -> None:
-    """Render a clean section heading."""
-    st.markdown(
-        f"""
-        <div class="section-header">
-            <div class="section-title">{title}</div>
-            <div class="section-subtitle">{subtitle}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+from components.layout import render_section_header
 
 
 def get_available_risk_tiers(equipment_risk_model: pd.DataFrame) -> list[str]:
@@ -108,9 +96,7 @@ def filter_equipment_risk_model(equipment_risk_model: pd.DataFrame) -> pd.DataFr
         filtered = filtered[filtered["risk_tier"].isin(selected_risk_tiers)]
 
     if selected_equipment_types:
-        filtered = filtered[
-            filtered["equipment_type"].isin(selected_equipment_types)
-        ]
+        filtered = filtered[filtered["equipment_type"].isin(selected_equipment_types)]
 
     filtered = filtered[
         filtered["callbacks"].ge(minimum_callbacks)
@@ -260,8 +246,7 @@ def render_equipment_risk_table(filtered_equipment: pd.DataFrame) -> None:
     ]
 
     available_columns = [
-        column for column in display_columns
-        if column in filtered_equipment.columns
+        column for column in display_columns if column in filtered_equipment.columns
     ]
 
     st.dataframe(

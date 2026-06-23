@@ -3,26 +3,13 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards import get_summary_value, render_command_card
 from components.charts import (
     build_fault_family_chart,
     build_monthly_callback_chart,
     build_monthly_response_repair_chart,
     build_top_account_chart,
 )
-
-
-def render_section_header(title: str, subtitle: str) -> None:
-    """Render a clean section heading."""
-    st.markdown(
-        f"""
-        <div class="section-header">
-            <div class="section-title">{title}</div>
-            <div class="section-subtitle">{subtitle}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+from components.layout import render_section_header
 
 
 def render_management_interpretation(
@@ -55,15 +42,11 @@ def render_management_interpretation(
 
     critical_equipment = 0
     if "risk_tier" in equipment_risk_model.columns:
-        critical_equipment = int(
-            equipment_risk_model["risk_tier"].eq("Critical").sum()
-        )
+        critical_equipment = int(equipment_risk_model["risk_tier"].eq("Critical").sum())
 
     critical_accounts = 0
     if "risk_tier" in account_risk_model.columns:
-        critical_accounts = int(
-            account_risk_model["risk_tier"].eq("Critical").sum()
-        )
+        critical_accounts = int(account_risk_model["risk_tier"].eq("Critical").sum())
 
     emerging_count = len(emerging_equipment_alerts)
 
@@ -178,9 +161,7 @@ def render_top_tables(
         ]
 
         available_account_columns = [
-            column
-            for column in account_columns
-            if column in account_risk_model.columns
+            column for column in account_columns if column in account_risk_model.columns
         ]
 
         st.dataframe(

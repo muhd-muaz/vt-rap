@@ -7,12 +7,7 @@ import streamlit as st
 def normalise_metric_name(value: object) -> str:
     """Normalize metric names for flexible matching."""
     return (
-        str(value)
-        .strip()
-        .lower()
-        .replace("-", "_")
-        .replace("/", "_")
-        .replace(" ", "_")
+        str(value).strip().lower().replace("-", "_").replace("/", "_").replace(" ", "_")
     )
 
 
@@ -112,7 +107,13 @@ def render_metadata_header(metadata: dict, period_context: dict | None = None) -
     with st.container(border=True):
         st.caption("Pipeline")
 
-        pipeline_col_1, pipeline_col_2, pipeline_col_3, pipeline_col_4, pipeline_col_5 = st.columns(5)
+        (
+            pipeline_col_1,
+            pipeline_col_2,
+            pipeline_col_3,
+            pipeline_col_4,
+            pipeline_col_5,
+        ) = st.columns(5)
 
         pipeline_col_1.metric("Last run", run_timestamp)
         pipeline_col_2.metric("Latest event month", latest_event_month)

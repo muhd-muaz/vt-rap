@@ -4,7 +4,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-
 CHART_FONT_FAMILY = (
     "-apple-system, BlinkMacSystemFont, SF Pro Display, "
     "SF Pro Text, Inter, Segoe UI, Roboto, Arial, sans-serif"
@@ -360,8 +359,7 @@ def build_equipment_type_trend_chart(monthly_equipment_type_trend: pd.DataFrame)
         .sum()
         .sort_values(ascending=False)
         .head(8)
-        .index
-        .tolist()
+        .index.tolist()
     )
 
     trend = monthly_equipment_type_trend[
@@ -630,11 +628,11 @@ def build_account_fault_mix_chart(
         yaxis_title="Fault Family",
     )
 
+
 def build_fault_code_volume_chart(fault_code_summary: pd.DataFrame):
     """Build actual fault-code callback volume chart."""
     chart_data = (
-        fault_code_summary
-        .sort_values("callbacks", ascending=False)
+        fault_code_summary.sort_values("callbacks", ascending=False)
         .head(20)
         .sort_values("callbacks", ascending=True)
         .copy()
@@ -683,8 +681,7 @@ def build_fault_code_volume_chart(fault_code_summary: pd.DataFrame):
 def build_fault_code_mantrap_chart(fault_code_summary: pd.DataFrame):
     """Build actual fault-code mantrap volume chart."""
     chart_data = (
-        fault_code_summary
-        .sort_values("mantraps", ascending=False)
+        fault_code_summary.sort_values("mantraps", ascending=False)
         .head(20)
         .sort_values("mantraps", ascending=True)
         .copy()

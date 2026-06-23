@@ -8,11 +8,7 @@ def build_equipment_risk_filters(equipment_risk_model: pd.DataFrame) -> pd.DataF
     """Render equipment risk filters and return filtered equipment risk data."""
     with st.expander("Equipment Risk Filters", expanded=True):
         risk_tiers = (
-            equipment_risk_model["risk_tier"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
+            equipment_risk_model["risk_tier"].dropna().astype(str).unique().tolist()
         )
 
         tier_order = ["Critical", "High", "Medium", "Low"]
