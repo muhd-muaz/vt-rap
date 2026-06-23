@@ -3,7 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from services.theme import get_theme, inject_theme_css
-from components.cards import render_metadata_header
+from components.cards import render_app_header, render_metadata_header
 from services.data_loader import load_css, load_dashboard_data
 from services.filtering import (
     build_filtered_dashboard_tables,
@@ -28,8 +28,7 @@ def main() -> None:
     inject_theme_css(active_theme)
     load_css()
 
-    st.title("VT-RAP Command Center")
-    st.caption("Vertical Transport Reliability Analytics Platform")
+    render_app_header()
 
     base_data = load_dashboard_data()
 

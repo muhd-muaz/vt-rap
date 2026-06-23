@@ -25,8 +25,31 @@ def get_summary_value(summary: pd.DataFrame, metric_name: str) -> str:
         return str(value)
 
 
+def render_app_header() -> None:
+    """Render the main dashboard header."""
+    st.markdown(
+        """
+        <div class="app-hero">
+            <div>
+                <div class="app-eyebrow">Vertical Transport Reliability Analytics Platform</div>
+                <div class="app-title">VT-RAP Command Center</div>
+                <div class="app-subtitle">
+                    Monitor callback volume, mantrap risk, equipment reliability,
+                    fault-code patterns, and operational data quality.
+                </div>
+            </div>
+            <div class="app-status-pill">
+                <span class="status-dot"></span>
+                Live analytics view
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_command_card(title: str, value: str, caption: str = "") -> None:
-    """Render a styled command-center card."""
+    """Render a styled metric card."""
     st.markdown(
         f"""
         <div class="command-card">
@@ -40,7 +63,7 @@ def render_command_card(title: str, value: str, caption: str = "") -> None:
 
 
 def render_metadata_header(metadata: dict, period_context: dict | None = None) -> None:
-    """Render pipeline metadata summary below the dashboard title."""
+    """Render pipeline and selected-period metadata using native Streamlit components."""
     run_timestamp = metadata.get("run_timestamp", "Not available")
     latest_event_month = metadata.get("latest_event_month", "-")
     raw_callback_file_count = metadata.get("raw_callback_file_count", "-")
@@ -58,23 +81,24 @@ def render_metadata_header(metadata: dict, period_context: dict | None = None) -
         completed_rows = f"{period_context.get('completed_or_verified_rows', 0):,}"
         mantraps = f"{period_context.get('mantraps', 0):,}"
 
-    st.markdown(
-        f"""
-        <div class="command-card">
-            <div class="command-card-title">Pipeline Status</div>
-            <div class="command-card-caption">
-                Last run: <b>{run_timestamp}</b> &nbsp; | &nbsp;
-                Latest event month: <b>{latest_event_month}</b> &nbsp; | &nbsp;
-                Raw callback files: <b>{raw_callback_file_count}</b> &nbsp; | &nbsp;
-                Raw rows: <b>{callbacks_raw_rows}</b> &nbsp; | &nbsp;
-                Validation: <b>{validation_status}</b>
-                <br><br>
-                Current period: <b>{period_label}</b> &nbsp; | &nbsp;
-                Filtered rows: <b>{filtered_rows}</b> &nbsp; | &nbsp;
-                Completed/verified: <b>{completed_rows}</b> &nbsp; | &nbsp;
-                Mantraps: <b>{mantraps}</b>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.caption("Pipeline")
+
+        pipeline_col_1, pipeline_col_2, pipeline_col_3, pipeline_col_4, pipeline_col_5 = st.columns(5)
+
+        pipeline_col_1.metric("Last run", run_timestamp)
+        pipeline_col_2.metric("Latest event month", latest_event_month)
+        pipeline_col_3.metric("Raw files", raw_callback_file_count)
+        pipeline_col_4.metric("Raw rows", callbacks_raw_rows)
+        pipeline_col_5.metric("Validation", validation_status)
+
+        st.divider()
+
+        st.caption("Current analysis period")
+
+        period_col_1, period_col_2, period_col_3, period_col_4 = st.columns(4)
+
+        period_col_1.metric("Period", period_label)
+        period_col_2.metric("Filtered rows", filtered_rows)
+        period_col_3.metric("Completed / verified", completed_rows)
+        period_col_4.metric("Mantraps", mantraps)

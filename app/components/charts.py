@@ -5,7 +5,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 
-CHART_FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+CHART_FONT_FAMILY = (
+    "-apple-system, BlinkMacSystemFont, SF Pro Display, "
+    "SF Pro Text, Inter, Segoe UI, Roboto, Arial, sans-serif"
+)
 
 BACKGROUND_TRANSPARENT = "rgba(0,0,0,0)"
 GRID_COLOR = "rgba(255, 255, 255, 0.08)"
