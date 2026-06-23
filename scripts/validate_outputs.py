@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import json
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-import json
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -128,6 +129,53 @@ def assert_equal(actual_value: int, expected_value: int, metric_name: str) -> No
         )
 
 
+def validate_pipeline_metadata() -> dict:
+    """Validate pipeline metadata file and return metadata content."""
+    metadata_path = PROCESSED_DIR / "pipeline_metadata.json"
+
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    required_metadata_keys = [
+        "pipeline_name",
+        "run_timestamp",
+        "raw_callback_file_count",
+        "raw_master_file_count",
+        "callbacks_raw_rows",
+        "silver_callbacks_rows",
+        "latest_event_month",
+        "gold_tables",
+        "master_tables",
+        "validation_status",
+    ]
+
+    missing_metadata_keys = [
+        key for key in required_metadata_keys
+        if key not in metadata
+    ]
+
+    if missing_metadata_keys:
+        raise AssertionError(
+            f"pipeline_metadata.json is missing keys: {missing_metadata_keys}"
+        )
+
+    return metadata
+
+
+def update_pipeline_metadata_validation_status(status: str) -> None:
+    """Update validation status in pipeline metadata."""
+    metadata_path = PROCESSED_DIR / "pipeline_metadata.json"
+
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    metadata["validation_status"] = status
+    metadata["validation_timestamp"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    metadata_path.write_text(
+        json.dumps(metadata, indent=4),
+        encoding="utf-8",
+    )
+
+
 def main() -> None:
     """Validate VT-RAP processed outputs."""
     print("Validating required processed files...")
@@ -135,21 +183,34 @@ def main() -> None:
     for file_name in REQUIRED_PROCESSED_FILES:
         assert_file_exists(file_name)
 
+    validate_pipeline_metadata()
+
     print("Loading processed tables...")
 
     callbacks_raw = pd.read_csv(
-    PROCESSED_DIR / "callbacks_raw.csv",
-    low_memory=False,
+        PROCESSED_DIR / "callbacks_raw.csv",
+        low_memory=False,
     )
 
     silver_callbacks = pd.read_csv(
-    PROCESSED_DIR / "silver_callbacks.csv",
-    low_memory=False,
+        PROCESSED_DIR / "silver_callbacks.csv",
+        low_memory=False,
     )
-    
-    equipment_risk_model = pd.read_csv(PROCESSED_DIR / "equipment_risk_model.csv", low_memory=False)
-    account_risk_model = pd.read_csv(PROCESSED_DIR / "account_risk_model.csv", low_memory=False)
-    data_quality_summary = pd.read_csv(PROCESSED_DIR / "data_quality_summary.csv", low_memory=False)
+
+    equipment_risk_model = pd.read_csv(
+        PROCESSED_DIR / "equipment_risk_model.csv",
+        low_memory=False,
+    )
+
+    account_risk_model = pd.read_csv(
+        PROCESSED_DIR / "account_risk_model.csv",
+        low_memory=False,
+    )
+
+    data_quality_summary = pd.read_csv(
+        PROCESSED_DIR / "data_quality_summary.csv",
+        low_memory=False,
+    )
 
     print("Validating row counts and key metrics...")
 
@@ -231,34 +292,11 @@ def main() -> None:
         table_name="data_quality_summary",
     )
 
+    update_pipeline_metadata_validation_status("Passed")
+
     print("Validation completed successfully.")
+    print("pipeline_metadata.json validation_status updated to Passed.")
 
-    metadata_path = PROCESSED_DIR / "pipeline_metadata.json"
-
-    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-
-    required_metadata_keys = [
-        "pipeline_name",
-        "run_timestamp",
-        "raw_callback_file_count",
-        "raw_master_file_count",
-        "callbacks_raw_rows",
-        "silver_callbacks_rows",
-        "latest_event_month",
-        "gold_tables",
-        "master_tables",
-        "validation_status",
-    ]
-
-    missing_metadata_keys = [
-        key for key in required_metadata_keys
-        if key not in metadata
-    ]
-
-    if missing_metadata_keys:
-        raise AssertionError(
-            f"pipeline_metadata.json is missing keys: {missing_metadata_keys}"
-        )
 
 if __name__ == "__main__":
     main()
