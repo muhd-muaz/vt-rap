@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -88,8 +90,82 @@ def save_management_workbook(
             sheet_name="Data Quality",
             index=False,
         )
+        gold_tables["monthly_callback_trend"].to_excel(
+            writer,
+            sheet_name="Monthly Callback Trend",
+            index=False,
+        )
 
     print(f"Saved Excel workbook: {excel_output_path}")
+
+
+def save_pipeline_metadata(
+    callbacks_raw: pd.DataFrame,
+    silver_callbacks: pd.DataFrame,
+    gold_tables: dict[str, pd.DataFrame],
+    master_tables: dict[str, pd.DataFrame],
+    output_directory: Path,
+) -> None:
+    """Save pipeline run metadata for dashboard display."""
+    raw_callback_files = sorted(
+        file_path.name for file_path in RAW_CALLBACKS_DIR.glob("Call Back Report *.xls")
+    )
+
+    raw_master_files = sorted(
+        file_path.name
+        for file_path in RAW_MASTER_DIR.iterdir()
+        if file_path.is_file()
+    )
+
+    latest_event_month = None
+    latest_event_at = None
+
+    if "event_at" in silver_callbacks.columns:
+        latest_event_at_value = pd.to_datetime(
+            silver_callbacks["event_at"],
+            errors="coerce",
+        ).max()
+
+        if pd.notna(latest_event_at_value):
+            latest_event_at = latest_event_at_value.strftime("%Y-%m-%d %H:%M:%S")
+            latest_event_month = latest_event_at_value.strftime("%Y-%m")
+
+    metadata = {
+        "pipeline_name": "VT-RAP",
+        "run_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "raw_callback_file_count": len(raw_callback_files),
+        "raw_master_file_count": len(raw_master_files),
+        "raw_callback_files": raw_callback_files,
+        "raw_master_files": raw_master_files,
+        "callbacks_raw_rows": int(len(callbacks_raw)),
+        "silver_callbacks_rows": int(len(silver_callbacks)),
+        "latest_event_at": latest_event_at,
+        "latest_event_month": latest_event_month,
+        "gold_tables": {
+            table_name: {
+                "rows": int(len(dataframe)),
+                "columns": int(len(dataframe.columns)),
+            }
+            for table_name, dataframe in gold_tables.items()
+        },
+        "master_tables": {
+            table_name: {
+                "rows": int(len(dataframe)),
+                "columns": int(len(dataframe.columns)),
+            }
+            for table_name, dataframe in master_tables.items()
+        },
+        "validation_status": "Not yet run",
+    }
+
+    metadata_output_path = output_directory / "pipeline_metadata.json"
+
+    metadata_output_path.write_text(
+        json.dumps(metadata, indent=4),
+        encoding="utf-8",
+    )
+
+    print(f"Saved pipeline metadata: {metadata_output_path}")
 
 
 def main() -> None:
@@ -133,6 +209,14 @@ def main() -> None:
 
     save_management_workbook(
         gold_tables=gold_tables,
+        output_directory=PROCESSED_DIR,
+    )
+
+    save_pipeline_metadata(
+        callbacks_raw=callbacks_raw,
+        silver_callbacks=silver_callbacks,
+        gold_tables=gold_tables,
+        master_tables=master_tables,
         output_directory=PROCESSED_DIR,
     )
 

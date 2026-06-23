@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import json
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +27,7 @@ REQUIRED_PROCESSED_FILES = [
     "equipment_fault_family_mix.csv",
     "account_fault_family_mix.csv",
     "vt_rap_management_outputs.xlsx",
+    "pipeline_metadata.json",
 ]
 
 
@@ -231,6 +233,32 @@ def main() -> None:
 
     print("Validation completed successfully.")
 
+    metadata_path = PROCESSED_DIR / "pipeline_metadata.json"
+
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+
+    required_metadata_keys = [
+        "pipeline_name",
+        "run_timestamp",
+        "raw_callback_file_count",
+        "raw_master_file_count",
+        "callbacks_raw_rows",
+        "silver_callbacks_rows",
+        "latest_event_month",
+        "gold_tables",
+        "master_tables",
+        "validation_status",
+    ]
+
+    missing_metadata_keys = [
+        key for key in required_metadata_keys
+        if key not in metadata
+    ]
+
+    if missing_metadata_keys:
+        raise AssertionError(
+            f"pipeline_metadata.json is missing keys: {missing_metadata_keys}"
+        )
 
 if __name__ == "__main__":
     main()
