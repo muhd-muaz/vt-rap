@@ -9,3 +9,4 @@ streamlit
 plotly
 python-dotenv
 pydantic
+pytest
