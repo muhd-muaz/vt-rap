@@ -15,9 +15,8 @@ from views.account_risk import render_account_risk
 from views.data_quality import render_data_quality
 from views.emerging_alerts import render_emerging_alerts
 from views.equipment_risk import render_equipment_risk
-from views.executive import render_executive_overview
+from views.executive_v2 import render_executive_overview_v2
 from views.fault_analysis import render_fault_analysis
-
 
 st.set_page_config(
     page_title="VT-RAP Command Center",
@@ -52,11 +51,12 @@ def main() -> None:
 
     raw_dashboard_data = load_dashboard_data()
 
-    period_context = render_period_filter(raw_dashboard_data["silver_callbacks"])
+    filtered_silver_callbacks, period_context = render_period_filter(
+        raw_dashboard_data["silver_callbacks"]
+    )
 
     dashboard_data = build_filtered_dashboard_tables(
-        silver_callbacks=raw_dashboard_data["silver_callbacks"],
-        period_context=period_context,
+        filtered_silver_callbacks=filtered_silver_callbacks,
     )
 
     render_page_header(
@@ -67,7 +67,7 @@ def main() -> None:
     )
 
     if selected_page == "Executive Overview":
-        render_executive_overview(
+        render_executive_overview_v2(
             executive_summary=dashboard_data["executive_summary"],
             fault_family_summary=dashboard_data["fault_family_summary"],
             equipment_risk_model=dashboard_data["equipment_risk_model"],
@@ -97,9 +97,7 @@ def main() -> None:
             fault_code_summary=dashboard_data["fault_code_summary"],
             monthly_fault_family_trend=dashboard_data["monthly_fault_family_trend"],
             monthly_fault_code_trend=dashboard_data["monthly_fault_code_trend"],
-            monthly_equipment_type_trend=dashboard_data[
-                "monthly_equipment_type_trend"
-            ],
+            monthly_equipment_type_trend=dashboard_data["monthly_equipment_type_trend"],
         )
 
     elif selected_page == "Emerging Alerts":
