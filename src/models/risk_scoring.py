@@ -476,7 +476,14 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
         recent = analysis_callbacks[analysis_callbacks["event_at"] >= window_start]
 
         recent_summary = (
-            recent.groupby("equipment_description_raw", dropna=False)
+            recent.groupby(
+                [
+                    "equipment_description_raw",
+                    "account_name_raw",
+                    "equipment_type",
+                ],
+                dropna=False,
+            )
             .agg(
                 **{
                     f"callbacks_last_{days}_days": ("callback_id", "count"),
@@ -488,7 +495,7 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
 
         equipment_summary = equipment_summary.merge(
             recent_summary,
-            on="equipment_description_raw",
+            on=["equipment_description_raw", "account_name_raw", "equipment_type"],
             how="left",
         )
 
