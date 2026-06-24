@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+import pandas as pd
+import streamlit as st
+
+from components.cards import get_summary_value
+
+
+def render_metric_card(
+    title: str,
+    value: str,
+    caption: str,
+    accent: str = "default",
+) -> None:
+    """Render redesigned metric card."""
+    st.markdown(
+        f"""
+        <div class="v2-metric-card accent-{accent}">
+            <div class="v2-metric-label">{title}</div>
+            <div class="v2-metric-value">{value}</div>
+            <div class="v2-metric-caption">{caption}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_summary_metric_card(
+    executive_summary: pd.DataFrame,
+    title: str,
+    metric_name: str,
+    caption: str,
+    suffix: str = "",
+    accent: str = "default",
+) -> None:
+    """Render redesigned summary metric card from executive summary."""
+    value = get_summary_value(executive_summary, metric_name)
+
+    if suffix and value != "-":
+        value = f"{value}{suffix}"
+
+    render_metric_card(
+        title=title,
+        value=value,
+        caption=caption,
+        accent=accent,
+    )
