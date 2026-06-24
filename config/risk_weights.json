@@ -1,0 +1,36 @@
+{
+  "equipment": {
+    "minimum_exposure_days": 180,
+    "sample_confidence_callback_threshold": 20,
+    "base_weights": {
+      "callback_volume_score": 0.25,
+      "callback_frequency_score": 0.20,
+      "mantrap_count_score": 0.25,
+      "mantrap_rate_score": 0.15,
+      "repair_duration_score": 0.10,
+      "fault_diversity_score": 0.05
+    },
+    "final_weights": {
+      "historical_risk_score": 0.70,
+      "recent_callback_score": 0.15,
+      "recent_mantrap_score": 0.15
+    },
+    "tier_bins": [-999999, 15, 30, 50, 999999],
+    "tier_labels": ["Low", "Medium", "High", "Critical"]
+  },
+  "account": {
+    "base_weights": {
+      "callback_volume_score": 0.25,
+      "callbacks_per_equipment_score": 0.25,
+      "mantrap_count_score": 0.25,
+      "mantrap_rate_score": 0.15,
+      "repair_duration_score": 0.10
+    },
+    "tier_bins": [-999999, 25, 50, 75, 999999],
+    "tier_labels": ["Low", "Medium", "High", "Critical"]
+  },
+  "emerging_alerts": {
+    "maximum_callbacks": 4,
+    "minimum_mantraps": 1
+  }
+}

@@ -3,6 +3,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from src.utils.risk_config import load_risk_config
+
+RISK_CONFIG = load_risk_config()
+
 
 def min_max_score(series: pd.Series) -> pd.Series:
     """Scale a numeric series between 0 and 1."""
@@ -390,7 +394,8 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
         equipment_summary["last_event_at"] - equipment_summary["first_event_at"]
     ).dt.days.clip(lower=1)
 
-    minimum_exposure_days = 180
+    equipment_config = RISK_CONFIG["equipment"]
+    minimum_exposure_days = equipment_config["minimum_exposure_days"]
 
     equipment_summary["exposure_days_adjusted"] = equipment_summary["active_days"].clip(
         lower=minimum_exposure_days
@@ -403,7 +408,8 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
     ).round(2)
 
     equipment_summary["sample_confidence_factor"] = (
-        equipment_summary["callbacks"] / 20
+        equipment_summary["callbacks"]
+        / equipment_config["sample_confidence_callback_threshold"]
     ).clip(upper=1)
 
     equipment_summary["median_repair_minutes_filled"] = equipment_summary[
@@ -434,14 +440,15 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
         equipment_summary["unique_fault_families"]
     )
 
+    equipment_base_weights = equipment_config["base_weights"]
+
     equipment_summary["raw_equipment_risk_score"] = (
-        equipment_summary["callback_volume_score"] * 0.25
-        + equipment_summary["callback_frequency_score"] * 0.20
-        + equipment_summary["mantrap_count_score"] * 0.25
-        + equipment_summary["mantrap_rate_score"] * 0.15
-        + equipment_summary["repair_duration_score"] * 0.10
-        + equipment_summary["fault_diversity_score"] * 0.05
-    ) * 100
+        sum(
+            equipment_summary[score_column] * weight
+            for score_column, weight in equipment_base_weights.items()
+        )
+        * 100
+    )
 
     equipment_summary["equipment_risk_score"] = (
         equipment_summary["raw_equipment_risk_score"]
@@ -506,16 +513,23 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
         equipment_summary["mantraps_last_365_days"]
     )
 
+    equipment_final_weights = equipment_config["final_weights"]
+
     equipment_summary["equipment_risk_score_v3"] = (
-        equipment_summary["equipment_risk_score"] * 0.70
-        + equipment_summary["recent_callback_score"] * 100 * 0.15
-        + equipment_summary["recent_mantrap_score"] * 100 * 0.15
+        equipment_summary["equipment_risk_score"]
+        * equipment_final_weights["historical_risk_score"]
+        + equipment_summary["recent_callback_score"]
+        * 100
+        * equipment_final_weights["recent_callback_score"]
+        + equipment_summary["recent_mantrap_score"]
+        * 100
+        * equipment_final_weights["recent_mantrap_score"]
     )
 
     equipment_summary["risk_tier"] = pd.cut(
         equipment_summary["equipment_risk_score_v3"],
-        bins=[-np.inf, 15, 30, 50, np.inf],
-        labels=["Low", "Medium", "High", "Critical"],
+        bins=equipment_config["tier_bins"],
+        labels=equipment_config["tier_labels"],
     )
 
     equipment_driver_columns = {
@@ -596,18 +610,21 @@ def build_account_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
         account_summary["median_repair_minutes_filled"]
     )
 
+    account_config = RISK_CONFIG["account"]
+    account_base_weights = account_config["base_weights"]
+
     account_summary["account_risk_score"] = (
-        account_summary["callback_volume_score"] * 0.25
-        + account_summary["callbacks_per_equipment_score"] * 0.25
-        + account_summary["mantrap_count_score"] * 0.25
-        + account_summary["mantrap_rate_score"] * 0.15
-        + account_summary["repair_duration_score"] * 0.10
-    ) * 100
+        sum(
+            account_summary[score_column] * weight
+            for score_column, weight in account_base_weights.items()
+        )
+        * 100
+    )
 
     account_summary["risk_tier"] = pd.cut(
         account_summary["account_risk_score"],
-        bins=[-np.inf, 25, 50, 75, np.inf],
-        labels=["Low", "Medium", "High", "Critical"],
+        bins=account_config["tier_bins"],
+        labels=account_config["tier_labels"],
     )
 
     account_driver_columns = {
@@ -638,8 +655,11 @@ def build_emerging_equipment_alerts(
     equipment_risk_model: pd.DataFrame,
 ) -> pd.DataFrame:
     """Build a low-evidence but high-severity emerging alert table."""
+    emerging_config = RISK_CONFIG["emerging_alerts"]
+
     return equipment_risk_model[
-        (equipment_risk_model["callbacks"] < 5) & (equipment_risk_model["mantraps"] > 0)
+        (equipment_risk_model["callbacks"] <= emerging_config["maximum_callbacks"])
+        & (equipment_risk_model["mantraps"] >= emerging_config["minimum_mantraps"])
     ].sort_values(
         ["mantraps", "mantrap_rate_pct", "median_repair_minutes"],
         ascending=False,
