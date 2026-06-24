@@ -28,9 +28,9 @@ def render_emerging_overview_cards(
 
     high_recent_activity = int(
         emerging_equipment_alerts[
-            emerging_equipment_alerts.get("recent_90d_callbacks", 0) >= 2
+            emerging_equipment_alerts.get("callbacks_last_90_days", 0) >= 2
         ].shape[0]
-        if "recent_90d_callbacks" in emerging_equipment_alerts.columns
+        if "callbacks_last_90_days" in emerging_equipment_alerts.columns
         else 0
     )
 
@@ -93,12 +93,12 @@ def filter_emerging_alerts(
             )
 
         with filter_col_3:
-            minimum_recent_90d_callbacks = st.number_input(
+            minimum_callbacks_last_90_days = st.number_input(
                 "Minimum recent 90-day callbacks",
                 min_value=0,
                 value=0,
                 step=1,
-                key="emerging_minimum_recent_90d_callbacks_filter",
+                key="emerging_minimum_callbacks_last_90_days_filter",
             )
 
         search_text = st.text_input(
@@ -115,9 +115,9 @@ def filter_emerging_alerts(
     if "mantraps" in filtered.columns:
         filtered = filtered[filtered["mantraps"].ge(minimum_mantraps)]
 
-    if "recent_90d_callbacks" in filtered.columns:
+    if "callbacks_last_90_days" in filtered.columns:
         filtered = filtered[
-            filtered["recent_90d_callbacks"].ge(minimum_recent_90d_callbacks)
+            filtered["callbacks_last_90_days"].ge(minimum_callbacks_last_90_days)
         ]
 
     if search_text.strip():
@@ -207,10 +207,10 @@ def render_emerging_alert_table(filtered_alerts: pd.DataFrame) -> None:
         "callbacks",
         "mantraps",
         "mantrap_rate_pct",
-        "recent_90d_callbacks",
-        "recent_90d_mantraps",
-        "recent_180d_callbacks",
-        "recent_365d_callbacks",
+        "callbacks_last_90_days",
+        "mantraps_last_90_days",
+        "callbacks_last_180_days",
+        "callbacks_last_365_days",
         "equipment_risk_score_v3",
         "risk_tier",
         "risk_signal_type",

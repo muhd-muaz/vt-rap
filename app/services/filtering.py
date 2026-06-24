@@ -34,6 +34,27 @@ def prepare_silver_callbacks_for_dashboard(
 
     return prepared
 
+    if "mantrap_flag" in prepared.columns:
+        prepared["mantrap_flag"] = (
+            prepared["mantrap_flag"]
+            .map(
+                {
+                    True: True,
+                    False: False,
+                    "True": True,
+                    "False": False,
+                    "true": True,
+                    "false": False,
+                    "1": True,
+                    "0": False,
+                    1: True,
+                    0: False,
+                }
+            )
+            .fillna(False)
+            .astype(bool)
+        )
+
 
 def get_available_years(silver_callbacks: pd.DataFrame) -> list[int]:
     """Return available event years."""

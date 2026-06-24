@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import streamlit as st
-import views.executive as executive_debug
 
 from services.theme import get_theme, inject_theme_css
 from components.cards import render_app_header, render_metadata_header
@@ -28,7 +27,6 @@ def main() -> None:
     active_theme = get_theme()
     inject_theme_css(active_theme)
     load_css()
-    st.caption(f"Executive module loaded from: {executive_debug.__file__}")
 
     render_app_header()
 
