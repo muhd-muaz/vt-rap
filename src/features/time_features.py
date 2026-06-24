@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-
 TIMESTAMP_COLUMNS = [
     "Created",
     "Start date + time (Realised)",
@@ -107,9 +106,8 @@ def add_time_features(dataframe: pd.DataFrame) -> pd.DataFrame:
     enriched["event_day_of_week"] = enriched["event_at"].dt.day_name()
     enriched["event_hour"] = enriched["event_at"].dt.hour
 
-    enriched["after_hours_flag"] = (
-        (enriched["event_hour"] < 8)
-        | (enriched["event_hour"] >= 18)
+    enriched["after_hours_flag"] = (enriched["event_hour"] < 8) | (
+        enriched["event_hour"] >= 18
     )
 
     enriched["data_entry_lag_days"] = (

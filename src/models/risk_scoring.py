@@ -62,8 +62,7 @@ def build_analysis_callbacks(silver_callbacks: pd.DataFrame) -> pd.DataFrame:
 def build_monthly_callback_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Build monthly callback and mantrap trend."""
     trend = (
-        analysis_callbacks
-        .groupby("event_month", dropna=False)
+        analysis_callbacks.groupby("event_month", dropna=False)
         .agg(
             callbacks=("callback_id", "count"),
             mantraps=("mantrap_flag", "sum"),
@@ -76,9 +75,7 @@ def build_monthly_callback_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFra
         .sort_values("event_month")
     )
 
-    trend["mantrap_rate_pct"] = (
-        trend["mantraps"] / trend["callbacks"] * 100
-    ).round(2)
+    trend["mantrap_rate_pct"] = (trend["mantraps"] / trend["callbacks"] * 100).round(2)
 
     trend["callback_change_vs_previous_month"] = (
         trend["callbacks"].diff().fillna(0).astype(int)
@@ -96,8 +93,7 @@ def build_monthly_fault_family_trend(
 ) -> pd.DataFrame:
     """Build monthly trend by fault family."""
     trend = (
-        analysis_callbacks
-        .groupby(["event_month", "fault_family_final"], dropna=False)
+        analysis_callbacks.groupby(["event_month", "fault_family_final"], dropna=False)
         .agg(
             callbacks=("callback_id", "count"),
             mantraps=("mantrap_flag", "sum"),
@@ -108,9 +104,7 @@ def build_monthly_fault_family_trend(
         .sort_values(["event_month", "callbacks"], ascending=[True, False])
     )
 
-    trend["mantrap_rate_pct"] = (
-        trend["mantraps"] / trend["callbacks"] * 100
-    ).round(2)
+    trend["mantrap_rate_pct"] = (trend["mantraps"] / trend["callbacks"] * 100).round(2)
 
     return trend
 
@@ -120,8 +114,7 @@ def build_monthly_equipment_type_trend(
 ) -> pd.DataFrame:
     """Build monthly trend by equipment type."""
     trend = (
-        analysis_callbacks
-        .groupby(["event_month", "equipment_type"], dropna=False)
+        analysis_callbacks.groupby(["event_month", "equipment_type"], dropna=False)
         .agg(
             callbacks=("callback_id", "count"),
             mantraps=("mantrap_flag", "sum"),
@@ -133,9 +126,7 @@ def build_monthly_equipment_type_trend(
         .sort_values(["event_month", "callbacks"], ascending=[True, False])
     )
 
-    trend["mantrap_rate_pct"] = (
-        trend["mantraps"] / trend["callbacks"] * 100
-    ).round(2)
+    trend["mantrap_rate_pct"] = (trend["mantraps"] / trend["callbacks"] * 100).round(2)
 
     return trend
 
@@ -143,8 +134,9 @@ def build_monthly_equipment_type_trend(
 def build_monthly_account_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Build monthly trend by account."""
     trend = (
-        analysis_callbacks
-        .groupby(["event_month", "account_code", "account_name_raw"], dropna=False)
+        analysis_callbacks.groupby(
+            ["event_month", "account_code", "account_name_raw"], dropna=False
+        )
         .agg(
             callbacks=("callback_id", "count"),
             mantraps=("mantrap_flag", "sum"),
@@ -156,9 +148,7 @@ def build_monthly_account_trend(analysis_callbacks: pd.DataFrame) -> pd.DataFram
         .sort_values(["event_month", "callbacks"], ascending=[True, False])
     )
 
-    trend["mantrap_rate_pct"] = (
-        trend["mantraps"] / trend["callbacks"] * 100
-    ).round(2)
+    trend["mantrap_rate_pct"] = (trend["mantraps"] / trend["callbacks"] * 100).round(2)
 
     return trend
 
@@ -168,8 +158,7 @@ def build_monthly_equipment_trend(
 ) -> pd.DataFrame:
     """Build monthly callback trend by equipment."""
     trend = (
-        analysis_callbacks
-        .groupby(
+        analysis_callbacks.groupby(
             [
                 "event_month",
                 "equipment_description_raw",
@@ -189,9 +178,7 @@ def build_monthly_equipment_trend(
         .sort_values(["equipment_description_raw", "event_month"])
     )
 
-    trend["mantrap_rate_pct"] = (
-        trend["mantraps"] / trend["callbacks"] * 100
-    ).round(2)
+    trend["mantrap_rate_pct"] = (trend["mantraps"] / trend["callbacks"] * 100).round(2)
 
     return trend
 
@@ -201,8 +188,7 @@ def build_equipment_fault_family_mix(
 ) -> pd.DataFrame:
     """Build fault family mix by equipment."""
     mix = (
-        analysis_callbacks
-        .groupby(
+        analysis_callbacks.groupby(
             [
                 "equipment_description_raw",
                 "account_name_raw",
@@ -224,9 +210,7 @@ def build_equipment_fault_family_mix(
         )
     )
 
-    mix["mantrap_rate_pct"] = (
-        mix["mantraps"] / mix["callbacks"] * 100
-    ).round(2)
+    mix["mantrap_rate_pct"] = (mix["mantraps"] / mix["callbacks"] * 100).round(2)
 
     return mix
 
@@ -236,8 +220,7 @@ def build_account_fault_family_mix(
 ) -> pd.DataFrame:
     """Build fault family mix by account."""
     mix = (
-        analysis_callbacks
-        .groupby(
+        analysis_callbacks.groupby(
             [
                 "account_code",
                 "account_name_raw",
@@ -259,9 +242,7 @@ def build_account_fault_family_mix(
         )
     )
 
-    mix["mantrap_rate_pct"] = (
-        mix["mantraps"] / mix["callbacks"] * 100
-    ).round(2)
+    mix["mantrap_rate_pct"] = (mix["mantraps"] / mix["callbacks"] * 100).round(2)
 
     return mix
 
@@ -269,8 +250,7 @@ def build_account_fault_family_mix(
 def build_fault_family_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Summarize callback performance by fault family."""
     summary = (
-        analysis_callbacks
-        .groupby("fault_family_final", dropna=False)
+        analysis_callbacks.groupby("fault_family_final", dropna=False)
         .agg(
             callbacks=("callback_id", "count"),
             mantraps=("mantrap_flag", "sum"),
@@ -292,13 +272,12 @@ def build_fault_family_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
 
     return summary.sort_values("callbacks", ascending=False)
 
+
 def build_fault_code_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Summarize callback performance by actual recorded fault code."""
     callbacks = analysis_callbacks.copy()
 
-    callbacks["fault_code_display"] = (
-        callbacks["fault_code_key"].fillna("UNCLASSIFIED")
-    )
+    callbacks["fault_code_display"] = callbacks["fault_code_key"].fillna("UNCLASSIFIED")
 
     callbacks["fault_code_name"] = (
         callbacks["fault_code_name"]
@@ -307,8 +286,7 @@ def build_fault_code_summary(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     )
 
     summary = (
-        callbacks
-        .groupby(
+        callbacks.groupby(
             [
                 "fault_code_display",
                 "fault_code_name",
@@ -346,9 +324,7 @@ def build_monthly_fault_code_trend(
     """Build monthly trend by actual recorded fault code."""
     callbacks = analysis_callbacks.copy()
 
-    callbacks["fault_code_display"] = (
-        callbacks["fault_code_key"].fillna("UNCLASSIFIED")
-    )
+    callbacks["fault_code_display"] = callbacks["fault_code_key"].fillna("UNCLASSIFIED")
 
     callbacks["fault_code_name"] = (
         callbacks["fault_code_name"]
@@ -357,8 +333,7 @@ def build_monthly_fault_code_trend(
     )
 
     trend = (
-        callbacks
-        .groupby(
+        callbacks.groupby(
             [
                 "event_month",
                 "fault_code_display",
@@ -379,17 +354,15 @@ def build_monthly_fault_code_trend(
         .sort_values(["event_month", "callbacks"], ascending=[True, False])
     )
 
-    trend["mantrap_rate_pct"] = (
-        trend["mantraps"] / trend["callbacks"] * 100
-    ).round(2)
+    trend["mantrap_rate_pct"] = (trend["mantraps"] / trend["callbacks"] * 100).round(2)
 
     return trend
+
 
 def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Build equipment-level risk model with historical and recent risk signals."""
     equipment_summary = (
-        analysis_callbacks
-        .groupby(
+        analysis_callbacks.groupby(
             [
                 "equipment_description_raw",
                 "account_name_raw",
@@ -419,8 +392,8 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
 
     minimum_exposure_days = 180
 
-    equipment_summary["exposure_days_adjusted"] = (
-        equipment_summary["active_days"].clip(lower=minimum_exposure_days)
+    equipment_summary["exposure_days_adjusted"] = equipment_summary["active_days"].clip(
+        lower=minimum_exposure_days
     )
 
     equipment_summary["callbacks_per_365_days_adjusted"] = (
@@ -433,10 +406,9 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
         equipment_summary["callbacks"] / 20
     ).clip(upper=1)
 
-    equipment_summary["median_repair_minutes_filled"] = (
-        equipment_summary["median_repair_minutes"]
-        .fillna(equipment_summary["median_repair_minutes"].median())
-    )
+    equipment_summary["median_repair_minutes_filled"] = equipment_summary[
+        "median_repair_minutes"
+    ].fillna(equipment_summary["median_repair_minutes"].median())
 
     equipment_summary["callback_frequency_score"] = min_max_score(
         equipment_summary["callbacks_per_365_days_adjusted"]
@@ -497,8 +469,7 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
         recent = analysis_callbacks[analysis_callbacks["event_at"] >= window_start]
 
         recent_summary = (
-            recent
-            .groupby("equipment_description_raw", dropna=False)
+            recent.groupby("equipment_description_raw", dropna=False)
             .agg(
                 **{
                     f"callbacks_last_{days}_days": ("callback_id", "count"),
@@ -577,8 +548,7 @@ def build_equipment_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame
 def build_account_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
     """Build account-level risk model."""
     account_summary = (
-        analysis_callbacks
-        .groupby(
+        analysis_callbacks.groupby(
             [
                 "account_code",
                 "account_name_raw",
@@ -604,10 +574,9 @@ def build_account_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
         account_summary["mantraps"] / account_summary["callbacks"] * 100
     ).round(2)
 
-    account_summary["median_repair_minutes_filled"] = (
-        account_summary["median_repair_minutes"]
-        .fillna(account_summary["median_repair_minutes"].median())
-    )
+    account_summary["median_repair_minutes_filled"] = account_summary[
+        "median_repair_minutes"
+    ].fillna(account_summary["median_repair_minutes"].median())
 
     account_summary["callback_volume_score"] = min_max_score(
         account_summary["callbacks"]
@@ -617,9 +586,7 @@ def build_account_risk_model(analysis_callbacks: pd.DataFrame) -> pd.DataFrame:
         account_summary["callbacks_per_equipment"]
     )
 
-    account_summary["mantrap_count_score"] = min_max_score(
-        account_summary["mantraps"]
-    )
+    account_summary["mantrap_count_score"] = min_max_score(account_summary["mantraps"])
 
     account_summary["mantrap_rate_score"] = min_max_score(
         account_summary["mantrap_rate_pct"]
@@ -671,15 +638,11 @@ def build_emerging_equipment_alerts(
     equipment_risk_model: pd.DataFrame,
 ) -> pd.DataFrame:
     """Build a low-evidence but high-severity emerging alert table."""
-    return (
-        equipment_risk_model[
-            (equipment_risk_model["callbacks"] < 5)
-            & (equipment_risk_model["mantraps"] > 0)
-        ]
-        .sort_values(
-            ["mantraps", "mantrap_rate_pct", "median_repair_minutes"],
-            ascending=False,
-        )
+    return equipment_risk_model[
+        (equipment_risk_model["callbacks"] < 5) & (equipment_risk_model["mantraps"] > 0)
+    ].sort_values(
+        ["mantraps", "mantrap_rate_pct", "median_repair_minutes"],
+        ascending=False,
     )
 
 
@@ -765,13 +728,10 @@ def build_data_quality_summary(silver_callbacks: pd.DataFrame) -> pd.DataFrame:
         {
             "check_name": "Rejected rows",
             "value": int(
-                silver_callbacks["analysis_status_group"]
-                .eq("rejected")
-                .sum()
+                silver_callbacks["analysis_status_group"].eq("rejected").sum()
             ),
             "rate_pct": round(
-                silver_callbacks["analysis_status_group"].eq("rejected").mean()
-                * 100,
+                silver_callbacks["analysis_status_group"].eq("rejected").mean() * 100,
                 2,
             ),
             "status": "Info",
@@ -800,9 +760,7 @@ def build_executive_summary(
             },
             {
                 "metric": "Unique equipment",
-                "value": int(
-                    analysis_callbacks["equipment_description_raw"].nunique()
-                ),
+                "value": int(analysis_callbacks["equipment_description_raw"].nunique()),
             },
             {
                 "metric": "Total mantraps",

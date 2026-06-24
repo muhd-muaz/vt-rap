@@ -32,9 +32,7 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     equipment_risk_model = build_equipment_risk_model(analysis_callbacks)
     account_risk_model = build_account_risk_model(analysis_callbacks)
 
-    emerging_equipment_alerts = build_emerging_equipment_alerts(
-        equipment_risk_model
-    )
+    emerging_equipment_alerts = build_emerging_equipment_alerts(equipment_risk_model)
 
     executive_summary = build_executive_summary(
         analysis_callbacks=analysis_callbacks,
@@ -46,9 +44,7 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     data_quality_summary = build_data_quality_summary(silver_callbacks)
 
     monthly_callback_trend = build_monthly_callback_trend(analysis_callbacks)
-    monthly_fault_family_trend = build_monthly_fault_family_trend(
-        analysis_callbacks
-    )
+    monthly_fault_family_trend = build_monthly_fault_family_trend(analysis_callbacks)
     monthly_fault_code_trend = build_monthly_fault_code_trend(analysis_callbacks)
     monthly_equipment_type_trend = build_monthly_equipment_type_trend(
         analysis_callbacks
@@ -56,12 +52,8 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     monthly_account_trend = build_monthly_account_trend(analysis_callbacks)
     monthly_equipment_trend = build_monthly_equipment_trend(analysis_callbacks)
 
-    equipment_fault_family_mix = build_equipment_fault_family_mix(
-        analysis_callbacks
-    )
-    account_fault_family_mix = build_account_fault_family_mix(
-        analysis_callbacks
-    )
+    equipment_fault_family_mix = build_equipment_fault_family_mix(analysis_callbacks)
+    account_fault_family_mix = build_account_fault_family_mix(analysis_callbacks)
 
     return {
         "fault_family_summary": fault_family_summary,

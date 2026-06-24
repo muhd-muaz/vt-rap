@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 EXPECTED_CALLBACK_COLUMNS = [
     "ID",
     "Created",
@@ -34,13 +33,11 @@ def validate_callback_schema(columns: list[str], source_name: str) -> None:
     """Validate callback report schema before processing."""
 
     missing_columns = [
-        column for column in EXPECTED_CALLBACK_COLUMNS
-        if column not in columns
+        column for column in EXPECTED_CALLBACK_COLUMNS if column not in columns
     ]
 
     unexpected_columns = [
-        column for column in columns
-        if column not in EXPECTED_CALLBACK_COLUMNS
+        column for column in columns if column not in EXPECTED_CALLBACK_COLUMNS
     ]
 
     if missing_columns or unexpected_columns:

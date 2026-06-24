@@ -10,12 +10,7 @@ from src.ingestion.schema import validate_callback_schema
 
 def extract_year_from_callback_file(file_name: str) -> int:
     """Extract year from callback file name such as 'Call Back Report 2026.xls'."""
-    return int(
-        file_name
-        .replace("Call Back Report ", "")
-        .replace(".xls", "")
-        .strip()
-    )
+    return int(file_name.replace("Call Back Report ", "").replace(".xls", "").strip())
 
 
 def add_callback_lineage(dataframe: pd.DataFrame, source_file: str) -> pd.DataFrame:
@@ -35,9 +30,7 @@ def build_callbacks_raw(callbacks_directory: Path) -> pd.DataFrame:
     callback_files = sorted(callbacks_directory.glob("Call Back Report *.xls"))
 
     if not callback_files:
-        raise FileNotFoundError(
-            f"No callback files found in {callbacks_directory}"
-        )
+        raise FileNotFoundError(f"No callback files found in {callbacks_directory}")
 
     callback_frames: list[pd.DataFrame] = []
 

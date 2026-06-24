@@ -34,9 +34,7 @@ def read_crm_export(file_path: Path) -> pd.DataFrame:
         except (UnicodeDecodeError, ValueError):
             continue
 
-    raise ValueError(
-        f"Unable to read '{file_path.name}' as Excel or CRM HTML export."
-    )
+    raise ValueError(f"Unable to read '{file_path.name}' as Excel or CRM HTML export.")
 
 
 def normalise_column_name(column_name: object) -> str:
@@ -48,8 +46,7 @@ def read_table_with_clean_headers(file_path: Path) -> pd.DataFrame:
     """Read a CRM export and normalize simple column headers."""
     dataframe = read_crm_export(file_path)
     dataframe.columns = [
-        normalise_column_name(column_name)
-        for column_name in dataframe.columns
+        normalise_column_name(column_name) for column_name in dataframe.columns
     ]
 
     return dataframe

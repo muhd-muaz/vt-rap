@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-
 FAULT_FAMILY_BY_CODE = {
     "2LDA": "Door System",
     "2CDS": "Door System",
@@ -53,8 +52,7 @@ def build_fault_lookup(fault_codes_raw: pd.DataFrame) -> pd.DataFrame:
     fault_lookup = fault_codes_raw.copy()
 
     fault_lookup.columns = [
-        str(column).strip().lower().replace(" ", "_")
-        for column in fault_lookup.columns
+        str(column).strip().lower().replace(" ", "_") for column in fault_lookup.columns
     ]
 
     required_columns = [
@@ -70,8 +68,7 @@ def build_fault_lookup(fault_codes_raw: pd.DataFrame) -> pd.DataFrame:
     ]
 
     missing_columns = [
-        column for column in required_columns
-        if column not in fault_lookup.columns
+        column for column in required_columns if column not in fault_lookup.columns
     ]
 
     if missing_columns:
@@ -79,9 +76,7 @@ def build_fault_lookup(fault_codes_raw: pd.DataFrame) -> pd.DataFrame:
             f"Fault-code master is missing required columns: {missing_columns}"
         )
 
-    fault_lookup["fault_code_key"] = normalise_fault_code(
-        fault_lookup["item_2_(code)"]
-    )
+    fault_lookup["fault_code_key"] = normalise_fault_code(fault_lookup["item_2_(code)"])
 
     fault_lookup = fault_lookup.rename(
         columns={
@@ -131,8 +126,7 @@ def add_fault_features(
     )
 
     enriched["fault_code_master_match_flag"] = (
-        enriched["fault_code_key"].notna()
-        & enriched["fault_master_category"].notna()
+        enriched["fault_code_key"].notna() & enriched["fault_master_category"].notna()
     )
 
     enriched["fault_code_display"] = enriched["fault_code_key"].fillna("UNCLASSIFIED")
@@ -144,14 +138,12 @@ def add_fault_features(
         .fillna(enriched["fault_code_display"])
     )
 
-    enriched["fault_code_description"] = (
-        enriched["fault_code_description"]
-        .fillna("No fault-code master description available")
+    enriched["fault_code_description"] = enriched["fault_code_description"].fillna(
+        "No fault-code master description available"
     )
 
-    enriched["fault_code_rectification"] = (
-        enriched["fault_code_rectification"]
-        .fillna("No rectification guidance available")
+    enriched["fault_code_rectification"] = enriched["fault_code_rectification"].fillna(
+        "No rectification guidance available"
     )
 
     enriched["fault_family_from_recorded_code"] = (
