@@ -9,7 +9,8 @@ from components.layout_v2 import (
     render_sidebar_status,
 )
 from services.data_loader import load_dashboard_data, load_pipeline_metadata
-from services.filtering import build_filtered_dashboard_tables, render_period_filter
+from services.filtering import build_filtered_dashboard_tables
+from services.filtering_v2 import render_sidebar_period_filter_v2
 from services.theme_v2 import load_theme_v2
 from views.account_risk import render_account_risk
 from views.data_quality import render_data_quality
@@ -51,7 +52,7 @@ def main() -> None:
 
     raw_dashboard_data = load_dashboard_data()
 
-    filtered_silver_callbacks, period_context = render_period_filter(
+    filtered_silver_callbacks, period_context = render_sidebar_period_filter_v2(
         raw_dashboard_data["silver_callbacks"]
     )
 
