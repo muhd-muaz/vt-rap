@@ -23,9 +23,11 @@ def render_metric_card(
         f"""
         <div class="v2-metric-card accent-{accent}">
             <div class="v2-metric-topline"></div>
-            <div class="v2-metric-label">{safe_title}</div>
-            <div class="v2-metric-value">{safe_value}</div>
-            <div class="v2-metric-caption">{safe_caption}</div>
+            <div class="v2-metric-content">
+                <div class="v2-metric-label">{safe_title}</div>
+                <div class="v2-metric-value">{safe_value}</div>
+                <div class="v2-metric-caption">{safe_caption}</div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,

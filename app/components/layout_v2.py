@@ -57,7 +57,7 @@ def render_sidebar_brand() -> None:
             <div class="v2-brand-mark">VT</div>
             <div>
                 <div class="v2-brand-title">VT-RAP</div>
-                <div class="v2-brand-subtitle">Reliability Command Center</div>
+                <div class="v2-brand-subtitle">Reliability command center</div>
             </div>
         </div>
         """,
@@ -132,8 +132,8 @@ def render_page_header(
                 <p>{safe_description}</p>
             </div>
             <div class="v2-header-badges">
-                <div class="v2-badge">Period: {safe_period_label}</div>
-                <div class="v2-badge">
+                <div class="v2-badge is-period">Period: {safe_period_label}</div>
+                <div class="v2-badge is-status">
                     <span class="v2-status-dot {status_class}"></span>
                     {safe_validation_status}
                 </div>

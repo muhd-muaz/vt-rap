@@ -178,7 +178,7 @@ def render_executive_overview_v2(
 
     with chart_col_1:
         render_v2_chart_card(
-            title="Monthly Callback Volume",
+            title="Monthly callback volume",
             subtitle="Callback volume trend for the selected period.",
             chart_key="executive_v2_monthly_callback_chart",
             figure=build_monthly_callback_chart(monthly_callback_trend),
@@ -186,7 +186,7 @@ def render_executive_overview_v2(
 
     with chart_col_2:
         render_v2_chart_card(
-            title="Response and Repair Timing",
+            title="Response and repair timing",
             subtitle="Median response and repair minutes by month.",
             chart_key="executive_v2_response_repair_chart",
             figure=build_monthly_response_repair_chart(monthly_callback_trend),
@@ -201,7 +201,7 @@ def render_executive_overview_v2(
 
     with risk_col_1:
         render_v2_chart_card(
-            title="Fault Family Distribution",
+            title="Fault family distribution",
             subtitle="Grouped fault categories by callback volume.",
             chart_key="executive_v2_fault_family_chart",
             figure=build_fault_family_chart(fault_family_summary),
@@ -209,7 +209,7 @@ def render_executive_overview_v2(
 
     with risk_col_2:
         render_v2_chart_card(
-            title="Top Risk Accounts",
+            title="Top risk accounts",
             subtitle="Accounts with the highest operational risk score.",
             chart_key="executive_v2_top_account_chart",
             figure=build_top_account_chart(account_risk_model),
