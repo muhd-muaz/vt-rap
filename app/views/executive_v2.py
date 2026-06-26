@@ -122,7 +122,7 @@ def render_executive_overview_v2(
     monthly_callback_trend: pd.DataFrame,
 ) -> None:
     """Render redesigned executive overview page."""
-    kpi_col_1, kpi_col_2, kpi_col_3, kpi_col_4 = st.columns(4)
+    kpi_col_1, kpi_col_2, kpi_col_3, kpi_col_4 = st.columns(4, gap="medium")
 
     with kpi_col_1:
         render_summary_metric_card(
@@ -174,7 +174,7 @@ def render_executive_overview_v2(
         subtitle="Monthly workload and response/repair timing patterns.",
     )
 
-    chart_col_1, chart_col_2 = st.columns(2)
+    chart_col_1, chart_col_2 = st.columns(2, gap="large")
 
     with chart_col_1:
         render_v2_chart_card(
@@ -197,7 +197,7 @@ def render_executive_overview_v2(
         subtitle="Fault and account concentration for management review.",
     )
 
-    risk_col_1, risk_col_2 = st.columns([1.05, 1])
+    risk_col_1, risk_col_2 = st.columns([1.05, 1], gap="large")
 
     with risk_col_1:
         render_v2_chart_card(

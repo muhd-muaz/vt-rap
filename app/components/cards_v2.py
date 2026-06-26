@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import streamlit as st
 
@@ -13,12 +15,17 @@ def render_metric_card(
     accent: str = "default",
 ) -> None:
     """Render redesigned metric card."""
+    safe_title = html.escape(str(title))
+    safe_value = html.escape(str(value))
+    safe_caption = html.escape(str(caption))
+
     st.markdown(
         f"""
         <div class="v2-metric-card accent-{accent}">
-            <div class="v2-metric-label">{title}</div>
-            <div class="v2-metric-value">{value}</div>
-            <div class="v2-metric-caption">{caption}</div>
+            <div class="v2-metric-topline"></div>
+            <div class="v2-metric-label">{safe_title}</div>
+            <div class="v2-metric-value">{safe_value}</div>
+            <div class="v2-metric-caption">{safe_caption}</div>
         </div>
         """,
         unsafe_allow_html=True,

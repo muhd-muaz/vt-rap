@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import html
 
 import streamlit as st
 
@@ -67,6 +68,8 @@ def render_sidebar_brand() -> None:
 def render_sidebar_status(validation_status: str, last_refresh: str) -> None:
     """Render sidebar pipeline status."""
     status_class = "passed" if validation_status.lower() == "passed" else "review"
+    safe_validation_status = html.escape(str(validation_status))
+    safe_last_refresh = html.escape(str(last_refresh))
 
     st.sidebar.markdown(
         f"""
@@ -74,10 +77,10 @@ def render_sidebar_status(validation_status: str, last_refresh: str) -> None:
             <div class="v2-sidebar-section-label">Pipeline</div>
             <div class="v2-status-row">
                 <span class="v2-status-dot {status_class}"></span>
-                <span>{validation_status}</span>
+                <span>{safe_validation_status}</span>
             </div>
             <div class="v2-sidebar-muted">Last refresh</div>
-            <div class="v2-sidebar-strong">{last_refresh}</div>
+            <div class="v2-sidebar-strong">{safe_last_refresh}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -115,20 +118,24 @@ def render_page_header(
 ) -> None:
     """Render V2 page header."""
     status_class = "passed" if validation_status.lower() == "passed" else "review"
+    safe_title = html.escape(str(title))
+    safe_description = html.escape(str(description))
+    safe_period_label = html.escape(str(period_label))
+    safe_validation_status = html.escape(str(validation_status))
 
     st.markdown(
         f"""
         <div class="v2-page-header">
             <div>
                 <div class="v2-eyebrow">VT-RAP Command Center</div>
-                <h1>{title}</h1>
-                <p>{description}</p>
+                <h1>{safe_title}</h1>
+                <p>{safe_description}</p>
             </div>
             <div class="v2-header-badges">
-                <div class="v2-badge">Period: {period_label}</div>
+                <div class="v2-badge">Period: {safe_period_label}</div>
                 <div class="v2-badge">
                     <span class="v2-status-dot {status_class}"></span>
-                    {validation_status}
+                    {safe_validation_status}
                 </div>
             </div>
         </div>
@@ -139,11 +146,14 @@ def render_page_header(
 
 def render_section_header(title: str, subtitle: str) -> None:
     """Render V2 section heading."""
+    safe_title = html.escape(str(title))
+    safe_subtitle = html.escape(str(subtitle))
+
     st.markdown(
         f"""
         <div class="v2-section-header">
-            <div class="v2-section-title">{title}</div>
-            <div class="v2-section-subtitle">{subtitle}</div>
+            <div class="v2-section-title">{safe_title}</div>
+            <div class="v2-section-subtitle">{safe_subtitle}</div>
         </div>
         """,
         unsafe_allow_html=True,

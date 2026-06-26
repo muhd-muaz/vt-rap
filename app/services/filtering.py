@@ -73,40 +73,46 @@ def prepare_silver_callbacks_for_dashboard(
 
 
 def get_available_years(silver_callbacks: pd.DataFrame) -> list[int]:
-    """Return available event years."""
-    if silver_callbacks.empty or "event_date" not in silver_callbacks.columns:
+    """Return available analysis years from event_at."""
+    if silver_callbacks.empty or "event_at" not in silver_callbacks.columns:
         return []
 
-    event_dates = pd.to_datetime(
-        silver_callbacks["event_date"],
+    event_at = pd.to_datetime(
+        silver_callbacks["event_at"],
         errors="coerce",
+        dayfirst=True,
     )
 
-    years = event_dates.dropna().dt.year.astype(int).sort_values().unique().tolist()
-
-    return years
+    years = event_at.dropna().dt.year.dropna().astype(int).unique().tolist()
+    return sorted(years)
 
 
 def get_available_months_for_year(
     silver_callbacks: pd.DataFrame,
     selected_year: int,
 ) -> list[int]:
-    """Return available event months for a selected year."""
-    if silver_callbacks.empty or "event_date" not in silver_callbacks.columns:
+    """Return available analysis months for the selected year from event_at."""
+    if silver_callbacks.empty or "event_at" not in silver_callbacks.columns:
         return []
 
-    event_dates = pd.to_datetime(
-        silver_callbacks["event_date"],
+    event_at = pd.to_datetime(
+        silver_callbacks["event_at"],
         errors="coerce",
+        dayfirst=True,
     )
 
-    filtered_dates = event_dates[event_dates.dt.year == selected_year]
+    selected_year_mask = event_at.dt.year.eq(selected_year)
 
     months = (
-        filtered_dates.dropna().dt.month.astype(int).sort_values().unique().tolist()
+        event_at[selected_year_mask]
+        .dropna()
+        .dt.month.dropna()
+        .astype(int)
+        .unique()
+        .tolist()
     )
 
-    return months
+    return sorted(months)
 
 
 def filter_silver_callbacks_by_period(

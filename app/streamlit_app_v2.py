@@ -3,7 +3,6 @@ from __future__ import annotations
 import streamlit as st
 
 from components.layout_v2 import (
-    PAGES,
     render_page_header,
     render_sidebar_navigation,
     render_sidebar_status,
@@ -21,39 +20,49 @@ from views.fault_analysis import render_fault_analysis
 
 st.set_page_config(
     page_title="VT-RAP Command Center",
-    page_icon="🏢",
+    page_icon="??",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 
-def get_page_description(page_name: str) -> str:
-    """Return page description from page metadata."""
-    for page in PAGES:
-        if page.key == page_name:
-            return page.description
+PAGE_DESCRIPTIONS = {
+    "Executive Overview": "Management-level overview of callback volume, mantrap exposure, service timing, and risk concentration.",
+    "Equipment Risk": "Equipment-level risk scoring, callback concentration, mantrap exposure, and operational drivers.",
+    "Account Risk": "Account-level risk exposure, affected equipment count, and priority customer locations.",
+    "Fault Analysis": "Fault family and fault code patterns across callback records.",
+    "Emerging Alerts": "Low-history equipment showing early warning signals.",
+    "Data Quality": "Pipeline completeness, validation status, and data quality indicators.",
+}
 
-    return "Vertical transport reliability intelligence."
+
+def get_page_description(page_name: str) -> str:
+    """Return page description."""
+    return PAGE_DESCRIPTIONS.get(
+        page_name,
+        "Vertical transport reliability intelligence.",
+    )
 
 
 def main() -> None:
     """Render redesigned VT-RAP Streamlit app."""
     load_theme_v2()
 
-    metadata = load_pipeline_metadata()
-    validation_status = str(metadata.get("validation_status", "Unknown"))
-    last_refresh = str(metadata.get("generated_at", "Unknown"))
+    raw_dashboard_data = load_dashboard_data()
+    pipeline_metadata = load_pipeline_metadata()
+
+    validation_status = str(pipeline_metadata.get("validation_status", "Unknown"))
+    last_refresh = str(pipeline_metadata.get("generated_at", "Unknown"))
 
     selected_page = render_sidebar_navigation()
-    render_sidebar_status(
-        validation_status=validation_status,
-        last_refresh=last_refresh,
-    )
-
-    raw_dashboard_data = load_dashboard_data()
 
     filtered_silver_callbacks, period_context = render_sidebar_period_filter_v2(
         raw_dashboard_data["silver_callbacks"]
+    )
+
+    render_sidebar_status(
+        validation_status=validation_status,
+        last_refresh=last_refresh,
     )
 
     dashboard_data = build_filtered_dashboard_tables(
@@ -109,7 +118,7 @@ def main() -> None:
     elif selected_page == "Data Quality":
         render_data_quality(
             data_quality_summary=dashboard_data["data_quality_summary"],
-            metadata=metadata,
+            metadata=pipeline_metadata,
         )
 
 
