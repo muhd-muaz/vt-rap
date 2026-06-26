@@ -16,9 +16,7 @@ def test_equipment_recent_callbacks_are_grouped_by_account() -> None:
             "fault_family_final": ["Door", "Door", "Drive"],
             "valid_response_minutes": [10.0, 12.0, 15.0],
             "valid_repair_minutes": [30.0, 35.0, 40.0],
-            "event_at": pd.to_datetime(
-                ["2024-12-30", "2024-12-31", "2023-12-01"]
-            ),
+            "event_at": pd.to_datetime(["2024-12-30", "2024-12-31", "2023-12-01"]),
         }
     )
 
