@@ -1120,3 +1120,65 @@ section[data-testid="stSidebar"][aria-expanded="true"] > div {
     min-width: 286px !important;
     max-width: 286px !important;
 }
+/* --- Final V2 presentation polish --- */
+
+.block-container {
+    padding-top: 1.35rem !important;
+    padding-bottom: 2.25rem !important;
+}
+
+.v2-page-header {
+    margin-bottom: 1.15rem !important;
+}
+
+.v2-section-header {
+    margin-top: 1.65rem !important;
+    margin-bottom: 0.85rem !important;
+}
+
+.v2-metric-card {
+    padding: 1.05rem 1.1rem !important;
+}
+
+.v2-metric-card strong,
+.v2-metric-value,
+.v2-kpi-value {
+    font-variant-numeric: tabular-nums;
+}
+
+.v2-chart-card {
+    padding: 1.05rem !important;
+}
+
+.v2-filter-panel {
+    margin-top: 0.75rem !important;
+    margin-bottom: 1.15rem !important;
+    padding: 1rem 1.1rem !important;
+}
+
+.v2-detail-panel {
+    margin-top: 1rem !important;
+}
+
+div[data-testid="stDataFrame"] {
+    border-radius: 14px !important;
+    overflow: hidden !important;
+}
+
+button[kind="secondary"],
+.stDownloadButton button {
+    border-radius: 10px !important;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+button[kind="secondary"]:active,
+.stDownloadButton button:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+@media (max-width: 1100px) {
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
