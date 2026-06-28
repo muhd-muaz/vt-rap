@@ -148,7 +148,10 @@ def render_equipment_overview_cards(equipment_risk_model: pd.DataFrame) -> None:
     )
 
     emerging_equipment = int(
-        equipment_risk_model["risk_signal_type"].eq("emerging").sum()
+        equipment_risk_model["risk_signal_type"]
+        .astype(str)
+        .str.contains("Emerging signal", case=False, na=False)
+        .sum()
         if "risk_signal_type" in equipment_risk_model.columns
         else 0
     )
