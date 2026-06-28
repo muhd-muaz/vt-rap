@@ -3,12 +3,17 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards import render_command_card
+from components.cards_v2 import (
+    render_chart_card,
+    render_detail_panel,
+    render_filter_panel_heading,
+    render_metric_card,
+)
 from components.charts import (
     build_account_fault_mix_chart,
     build_account_monthly_chart,
 )
-from components.layout import render_section_header
+from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 
 
@@ -49,44 +54,52 @@ def render_account_overview_cards(account_risk_model: pd.DataFrame) -> None:
         else 0
     )
 
-    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
 
     with card_col_1:
-        render_command_card(
-            title="Accounts Analyzed",
+        render_metric_card(
+            title="Accounts analyzed",
             value=f"{total_accounts:,}",
             caption="Customer accounts active in the selected period.",
+            accent="default",
         )
 
     with card_col_2:
-        render_command_card(
-            title="Critical Accounts",
+        render_metric_card(
+            title="Critical accounts",
             value=f"{critical_accounts:,}",
             caption="Accounts classified as critical operational risk.",
+            accent="danger",
         )
 
     with card_col_3:
-        render_command_card(
-            title="High-Risk Accounts",
+        render_metric_card(
+            title="High-risk accounts",
             value=f"{high_accounts:,}",
             caption="Accounts classified as high operational risk.",
+            accent="warning",
         )
 
     with card_col_4:
-        render_command_card(
-            title="Account Mantraps",
+        render_metric_card(
+            title="Account mantraps",
             value=f"{total_mantraps:,}",
             caption="Total mantrap events across account records.",
+            accent="blue",
         )
 
 
 def filter_account_risk_model(account_risk_model: pd.DataFrame) -> pd.DataFrame:
     """Render account filters and return filtered account risk model."""
-    with st.container(border=True):
-        st.caption("Account risk filters")
+    render_filter_panel_heading(
+        title="Account risk filters",
+        subtitle="Narrow account ranking without changing the global period filter.",
+    )
 
+    with st.container(border=True):
         filter_col_1, filter_col_2, filter_col_3, filter_col_4 = st.columns(
-            [1.1, 1, 1, 1]
+            [1.1, 1, 1, 1],
+            gap="medium",
         )
 
         with filter_col_1:
@@ -198,56 +211,78 @@ def render_account_risk_table(filtered_accounts: pd.DataFrame) -> None:
 
 def render_selected_account_profile(selected_row: pd.Series) -> None:
     """Render selected account profile."""
-    st.markdown(
-        f"""
-        <div class="insight-panel">
-            <div class="insight-panel-title">Selected account profile</div>
-            <div class="insight-grid">
-                <div>
-                    <span>Account</span>
-                    <strong>{selected_row.get("account_name_raw", "-")}</strong>
-                    <p>Customer account selected for operational drilldown.</p>
-                </div>
-                <div>
-                    <span>Account code</span>
-                    <strong>{selected_row.get("account_code", "-")}</strong>
-                    <p>Original account identifier from the source records.</p>
-                </div>
-                <div>
-                    <span>Risk tier</span>
-                    <strong>{selected_row.get("risk_tier", "-")}</strong>
-                    <p>Current account-level risk classification.</p>
-                </div>
-                <div>
-                    <span>Primary driver</span>
-                    <strong>{selected_row.get("primary_risk_driver", "-")}</strong>
-                    <p>Main factor contributing to the account risk score.</p>
-                </div>
-                <div>
-                    <span>Callbacks</span>
-                    <strong>{int(selected_row.get("callbacks", 0)):,}</strong>
-                    <p>Total callback volume under this account.</p>
-                </div>
-                <div>
-                    <span>Mantraps</span>
-                    <strong>{int(selected_row.get("mantraps", 0)):,}</strong>
-                    <p>Mantrap-related callback events under this account.</p>
-                </div>
-                <div>
-                    <span>Unique equipment</span>
-                    <strong>{int(selected_row.get("unique_equipment", 0)):,}</strong>
-                    <p>Number of equipment units linked to this account.</p>
-                </div>
-                <div>
-                    <span>Risk score</span>
-                    <strong>{float(selected_row.get("account_risk_score", 0)):,.2f}</strong>
-                    <p>Composite account risk score.</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_detail_panel(
+        eyebrow="Selected account",
+        title="Risk profile and equipment context",
+        score_label="Risk score",
+        score_value=format_float(selected_row.get("account_risk_score", 0)),
+        items=[
+            (
+                "Account",
+                format_text(selected_row.get("account_name_raw", "-")),
+                "Customer account selected for operational drilldown.",
+            ),
+            (
+                "Account code",
+                format_text(selected_row.get("account_code", "-")),
+                "Original account identifier from the source records.",
+            ),
+            (
+                "Risk tier",
+                format_text(selected_row.get("risk_tier", "-")),
+                "Current account-level risk classification.",
+            ),
+            (
+                "Primary driver",
+                format_text(selected_row.get("primary_risk_driver", "-")),
+                "Main factor contributing to the account risk score.",
+            ),
+            (
+                "Callbacks",
+                format_int(selected_row.get("callbacks", 0)),
+                "Total callback volume under this account.",
+            ),
+            (
+                "Mantraps",
+                format_int(selected_row.get("mantraps", 0)),
+                "Mantrap-related callback events under this account.",
+            ),
+            (
+                "Unique equipment",
+                format_int(selected_row.get("unique_equipment", 0)),
+                "Number of equipment units linked to this account.",
+            ),
+        ],
     )
+
+
+def format_text(value, fallback: str = "-") -> str:
+    """Format source text for V2 display helpers."""
+    if value is None or pd.isna(value):
+        return fallback
+
+    value_text = str(value).strip()
+    return value_text if value_text else fallback
+
+
+def format_int(value) -> str:
+    """Format integer display values."""
+    try:
+        if value is None or pd.isna(value):
+            return "0"
+        return f"{int(value):,}"
+    except (TypeError, ValueError):
+        return "0"
+
+
+def format_float(value) -> str:
+    """Format decimal display values."""
+    try:
+        if value is None or pd.isna(value):
+            return "0.00"
+        return f"{float(value):,.2f}"
+    except (TypeError, ValueError):
+        return "0.00"
 
 
 def render_account_equipment_table(
@@ -310,7 +345,7 @@ def render_account_risk(
 ) -> None:
     """Render account risk dashboard page."""
     render_section_header(
-        title="Account Risk",
+        title="Account risk",
         subtitle="Identify customer accounts with concentrated callback volume, mantrap exposure, and equipment reliability risk.",
     )
 
@@ -347,26 +382,33 @@ def render_account_risk(
 
     render_selected_account_profile(selected_row)
 
-    chart_col_1, chart_col_2 = st.columns(2)
+    render_section_header(
+        title="Account drilldown",
+        subtitle="Trend and fault-family mix for the selected account.",
+    )
+
+    chart_col_1, chart_col_2 = st.columns(2, gap="large")
 
     with chart_col_1:
-        st.plotly_chart(
-            build_account_monthly_chart(
+        render_chart_card(
+            title="Monthly account trend",
+            subtitle="Callbacks and mantraps for the selected account.",
+            chart_key="account_risk_monthly_chart",
+            figure=build_account_monthly_chart(
                 monthly_account_trend=monthly_account_trend,
                 selected_account_name=selected_account_name,
             ),
-            width="stretch",
-            key="account_risk_monthly_chart",
         )
 
     with chart_col_2:
-        st.plotly_chart(
-            build_account_fault_mix_chart(
+        render_chart_card(
+            title="Fault family mix",
+            subtitle="Fault-family callback volume for the selected account.",
+            chart_key="account_risk_fault_mix_chart",
+            figure=build_account_fault_mix_chart(
                 account_fault_family_mix=account_fault_family_mix,
                 selected_account_name=selected_account_name,
             ),
-            width="stretch",
-            key="account_risk_fault_mix_chart",
         )
 
     render_section_header(

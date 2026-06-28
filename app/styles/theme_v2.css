@@ -570,8 +570,8 @@ body,
 
 /* Equipment risk V2 */
 .v2-filter-panel-heading {
-    margin: 1rem 0 0;
-    padding: 0.86rem 0.95rem 0.55rem;
+    margin: 0.9rem 0 0;
+    padding: 0.78rem 0.9rem 0.5rem;
     border: 1px solid var(--vt-border);
     border-bottom: none;
     border-radius: 16px 16px 0 0;
@@ -605,6 +605,154 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has(.v2-filter-panel-heading) {
     border-color: var(--vt-border) !important;
     border-radius: 0 0 16px 16px !important;
     background: rgba(17, 21, 28, 0.72) !important;
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stTextInput"]),
+div[data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stMultiSelect"]),
+div[data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stNumberInput"]) {
+    border-color: var(--vt-border) !important;
+    border-radius: 0 0 16px 16px !important;
+    background: rgba(17, 21, 28, 0.72) !important;
+    box-shadow: var(--vt-shadow-card);
+}
+
+.v2-detail-panel {
+    margin: 1rem 0 1.18rem;
+    padding: 1rem;
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 62%),
+        rgba(17, 21, 28, 0.84);
+    border: 1px solid var(--vt-border);
+    box-shadow: var(--vt-shadow-card);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    position: relative;
+    overflow: hidden;
+}
+
+.v2-detail-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: var(--vt-highlight);
+}
+
+.v2-detail-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+    position: relative;
+    z-index: 1;
+}
+
+.v2-detail-title {
+    color: var(--vt-text);
+    font-size: 1.04rem;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.v2-detail-score {
+    min-width: 8rem;
+    padding: 0.62rem 0.72rem;
+    border-radius: 12px;
+    background: rgba(249, 112, 102, 0.08);
+    border: 1px solid rgba(249, 112, 102, 0.18);
+    text-align: right;
+}
+
+.v2-detail-score span,
+.v2-detail-grid span {
+    display: block;
+    color: var(--vt-text-muted);
+    font-size: 0.67rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.v2-detail-score strong {
+    display: block;
+    color: var(--vt-danger);
+    font-size: 1.28rem;
+    line-height: 1.05;
+    margin-top: 0.24rem;
+}
+
+.v2-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.62rem;
+    position: relative;
+    z-index: 1;
+}
+
+.v2-detail-grid > div {
+    min-height: 6.1rem;
+    padding: 0.72rem 0.78rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--vt-border-soft);
+    box-shadow: rgba(255, 255, 255, 0.045) 0 1px 0 inset;
+}
+
+.v2-detail-grid strong {
+    display: block;
+    color: var(--vt-text);
+    font-size: 0.95rem;
+    line-height: 1.25;
+    margin-top: 0.28rem;
+    overflow-wrap: anywhere;
+}
+
+.v2-detail-grid p {
+    color: var(--vt-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.34;
+    margin: 0.36rem 0 0;
+}
+
+div[data-testid="stTabs"] button {
+    color: var(--vt-text-soft);
+    border-radius: 10px 10px 0 0;
+    font-weight: 600;
+}
+
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #D8E8FF;
+    background: rgba(124, 183, 247, 0.08);
+}
+
+div[data-testid="stTabs"] [data-baseweb="tab-highlight"] {
+    background-color: var(--vt-primary);
+}
+
+div[data-testid="stSelectbox"] [data-baseweb="select"] > div,
+div[data-testid="stMultiSelect"] [data-baseweb="select"] > div,
+div[data-testid="stNumberInput"] input,
+div[data-testid="stTextInput"] input {
+    background: rgba(9, 11, 16, 0.72) !important;
+    border-color: var(--vt-border-soft) !important;
+    border-radius: 10px !important;
+    color: var(--vt-text) !important;
+}
+
+div[data-testid="stSelectbox"] [data-baseweb="select"] > div:hover,
+div[data-testid="stMultiSelect"] [data-baseweb="select"] > div:hover,
+div[data-testid="stNumberInput"] input:hover,
+div[data-testid="stTextInput"] input:hover {
+    border-color: rgba(124, 183, 247, 0.26) !important;
+}
+
+div[data-testid="stSelectbox"] [data-baseweb="select"] > div:focus-within,
+div[data-testid="stMultiSelect"] [data-baseweb="select"] > div:focus-within,
+div[data-testid="stNumberInput"] input:focus,
+div[data-testid="stTextInput"] input:focus {
+    border-color: rgba(124, 183, 247, 0.52) !important;
+    box-shadow: rgba(124, 183, 247, 0.16) 0 0 0 3px !important;
 }
 
 .v2-equipment-profile-panel {
@@ -801,11 +949,18 @@ div[data-testid="stDataFrame"] {
         grid-template-columns: 1fr;
     }
 
-    .v2-equipment-profile-score {
+    .v2-detail-heading {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .v2-equipment-profile-score,
+    .v2-detail-score {
         text-align: left;
     }
 
-    .v2-equipment-profile-grid {
+    .v2-equipment-profile-grid,
+    .v2-detail-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
@@ -815,7 +970,8 @@ div[data-testid="stDataFrame"] {
 }
 
 @media (max-width: 720px) {
-    .v2-equipment-profile-grid {
+    .v2-equipment-profile-grid,
+    .v2-detail-grid {
         grid-template-columns: 1fr;
     }
 

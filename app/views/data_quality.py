@@ -3,8 +3,8 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards import render_command_card
-from components.layout import render_section_header
+from components.cards_v2 import render_detail_panel, render_metric_card
+from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 
 
@@ -78,18 +78,19 @@ def get_quality_rate_number(
 
 def render_quality_overview_cards(data_quality_summary: pd.DataFrame) -> None:
     """Render data quality KPI cards."""
-    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
 
     with card_col_1:
-        render_command_card(
-            title="Total Records",
+        render_metric_card(
+            title="Total records",
             value=get_quality_value(data_quality_summary, "Total callback records"),
             caption="All callback records loaded into the pipeline.",
+            accent="default",
         )
 
     with card_col_2:
-        render_command_card(
-            title="Completed / Verified",
+        render_metric_card(
+            title="Completed / verified",
             value=get_quality_value(
                 data_quality_summary,
                 "Completed / verified records",
@@ -98,21 +99,23 @@ def render_quality_overview_cards(data_quality_summary: pd.DataFrame) -> None:
                 f"{get_quality_rate(data_quality_summary, 'Completed / verified records')} "
                 "of records are finalized for analysis."
             ),
+            accent="blue",
         )
 
     with card_col_3:
-        render_command_card(
-            title="Fault-Code Match",
+        render_metric_card(
+            title="Fault-code match",
             value=get_quality_rate(
                 data_quality_summary,
                 "Fault-code master matched rows",
             ),
             caption="Recorded fault codes matched to the fault-code master.",
+            accent="violet",
         )
 
     with card_col_4:
-        render_command_card(
-            title="Missing Fault Codes",
+        render_metric_card(
+            title="Missing fault codes",
             value=get_quality_value(
                 data_quality_summary,
                 "Missing fault-code rows",
@@ -121,16 +124,17 @@ def render_quality_overview_cards(data_quality_summary: pd.DataFrame) -> None:
                 f"{get_quality_rate(data_quality_summary, 'Missing fault-code rows')} "
                 "of records are retained as Unclassified."
             ),
+            accent="warning",
         )
 
 
 def render_quality_risk_cards(data_quality_summary: pd.DataFrame) -> None:
     """Render data-quality risk cards."""
-    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
 
     with card_col_1:
-        render_command_card(
-            title="Invalid Response",
+        render_metric_card(
+            title="Invalid response",
             value=get_quality_value(
                 data_quality_summary,
                 "Invalid response-time rows",
@@ -139,11 +143,12 @@ def render_quality_risk_cards(data_quality_summary: pd.DataFrame) -> None:
                 f"{get_quality_rate(data_quality_summary, 'Invalid response-time rows')} "
                 "of records have invalid response duration."
             ),
+            accent="danger",
         )
 
     with card_col_2:
-        render_command_card(
-            title="Invalid Repair",
+        render_metric_card(
+            title="Invalid repair",
             value=get_quality_value(
                 data_quality_summary,
                 "Invalid repair-time rows",
@@ -152,26 +157,29 @@ def render_quality_risk_cards(data_quality_summary: pd.DataFrame) -> None:
                 f"{get_quality_rate(data_quality_summary, 'Invalid repair-time rows')} "
                 "of records have invalid repair duration."
             ),
+            accent="danger",
         )
 
     with card_col_3:
-        render_command_card(
-            title="Open / In Process",
+        render_metric_card(
+            title="Open / in process",
             value=get_quality_value(
                 data_quality_summary,
                 "Open / in-process rows",
             ),
             caption="Records not yet finalized at source status level.",
+            accent="warning",
         )
 
     with card_col_4:
-        render_command_card(
+        render_metric_card(
             title="Rejected",
             value=get_quality_value(
                 data_quality_summary,
                 "Rejected rows",
             ),
             caption="Rejected records retained for audit visibility.",
+            accent="violet",
         )
 
 
@@ -216,42 +224,38 @@ def render_data_quality_interpretation(data_quality_summary: pd.DataFrame) -> No
             "prioritize source-data cleanup."
         )
 
-    st.markdown(
-        f"""
-        <div class="insight-panel">
-            <div class="insight-panel-title">Data quality interpretation</div>
-            <div class="insight-grid">
-                <div>
-                    <span>Trust level</span>
-                    <strong>{trust_label}</strong>
-                    <p>{trust_description}</p>
-                </div>
-                <div>
-                    <span>Fault-code coverage</span>
-                    <strong>{fault_code_match_rate:,.2f}%</strong>
-                    <p>Matched against the uploaded fault-code master table.</p>
-                </div>
-                <div>
-                    <span>Missing fault codes</span>
-                    <strong>{missing_fault_codes}</strong>
-                    <p>These records are retained as Unclassified, not removed.</p>
-                </div>
-                <div>
-                    <span>Timing validity</span>
-                    <strong>{invalid_response} / {invalid_repair}</strong>
-                    <p>Invalid response and repair rows are excluded from median timing calculations.</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_detail_panel(
+        eyebrow="Data quality interpretation",
+        title="Pipeline trust and analysis readiness",
+        items=[
+            (
+                "Trust level",
+                trust_label,
+                trust_description,
+            ),
+            (
+                "Fault-code coverage",
+                f"{fault_code_match_rate:,.2f}%",
+                "Matched against the uploaded fault-code master table.",
+            ),
+            (
+                "Missing fault codes",
+                missing_fault_codes,
+                "These records are retained as Unclassified, not removed.",
+            ),
+            (
+                "Timing validity",
+                f"{invalid_response} / {invalid_repair}",
+                "Invalid response and repair rows are excluded from median timing calculations.",
+            ),
+        ],
     )
 
 
 def render_quality_table(data_quality_summary: pd.DataFrame) -> None:
     """Render full data-quality summary table."""
     render_section_header(
-        title="Full Data Quality Summary",
+        title="Full data quality summary",
         subtitle="Detailed audit metrics generated from the processed callback dataset.",
     )
 
@@ -269,10 +273,13 @@ def render_quality_table(data_quality_summary: pd.DataFrame) -> None:
     )
 
 
-def render_data_quality(data_quality_summary: pd.DataFrame) -> None:
+def render_data_quality(
+    data_quality_summary: pd.DataFrame,
+    metadata: dict | None = None,
+) -> None:
     """Render data quality dashboard page."""
     render_section_header(
-        title="Data Quality",
+        title="Data quality",
         subtitle="Audit source completeness, status coverage, timing validity, and fault-code matching.",
     )
 

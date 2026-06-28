@@ -3,7 +3,12 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards import render_command_card
+from components.cards_v2 import (
+    render_chart_card,
+    render_detail_panel,
+    render_filter_panel_heading,
+    render_metric_card,
+)
 from components.charts import (
     build_equipment_type_trend_chart,
     build_fault_code_mantrap_chart,
@@ -12,7 +17,7 @@ from components.charts import (
     build_fault_family_chart,
     build_fault_family_trend_chart,
 )
-from components.layout import render_section_header
+from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 
 
@@ -31,7 +36,7 @@ def get_top_fault_code(fault_code_summary: pd.DataFrame) -> str:
 
     top_row = fault_code_summary.iloc[0]
 
-    return f"{top_row['fault_code_display']} — {top_row['fault_code_name']}"
+    return f"{top_row['fault_code_display']} - {top_row['fault_code_name']}"
 
 
 def render_fault_overview_cards(
@@ -54,65 +59,65 @@ def render_fault_overview_cards(
         ].shape[0]
     )
 
-    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
 
     with card_col_1:
-        render_command_card(
-            title="Fault Families",
+        render_metric_card(
+            title="Fault families",
             value=f"{total_fault_families:,}",
             caption="Grouped management-level fault categories.",
+            accent="default",
         )
 
     with card_col_2:
-        render_command_card(
-            title="Actual Fault Codes",
+        render_metric_card(
+            title="Actual fault codes",
             value=f"{total_fault_codes:,}",
             caption="Original CRM fault codes retained for investigation.",
+            accent="blue",
         )
 
     with card_col_3:
-        render_command_card(
-            title="Fault-Code Mantraps",
+        render_metric_card(
+            title="Fault-code mantraps",
             value=f"{total_mantraps:,}",
             caption="Mantrap events across actual fault codes.",
+            accent="danger",
         )
 
     with card_col_4:
-        render_command_card(
-            title="High-Mantrap Codes",
+        render_metric_card(
+            title="High-mantrap codes",
             value=f"{high_mantrap_codes:,}",
-            caption="Codes with at least 10 callbacks and ≥20% mantrap rate.",
+            caption="Codes with at least 10 callbacks and 20% or higher mantrap rate.",
+            accent="warning",
         )
 
-    st.markdown(
-        f"""
-        <div class="insight-panel">
-            <div class="insight-panel-title">Fault interpretation</div>
-            <div class="insight-grid">
-                <div>
-                    <span>Top fault family</span>
-                    <strong>{top_family}</strong>
-                    <p>Highest-volume grouped fault category in the selected period.</p>
-                </div>
-                <div>
-                    <span>Top actual fault code</span>
-                    <strong>{top_code}</strong>
-                    <p>Most frequent original CRM fault code. Use this for operational investigation.</p>
-                </div>
-                <div>
-                    <span>Recommended view</span>
-                    <strong>Use both levels</strong>
-                    <p>Family view explains the pattern. Actual code view preserves the precise source record.</p>
-                </div>
-                <div>
-                    <span>Data rule</span>
-                    <strong>No code replacement</strong>
-                    <p>Fault families are added as grouping, not used to overwrite actual fault codes.</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_detail_panel(
+        eyebrow="Fault interpretation",
+        title="Source-code fidelity and grouped analysis",
+        items=[
+            (
+                "Top fault family",
+                top_family,
+                "Highest-volume grouped fault category in the selected period.",
+            ),
+            (
+                "Top actual fault code",
+                top_code,
+                "Most frequent original CRM fault code for operational investigation.",
+            ),
+            (
+                "Recommended view",
+                "Use both levels",
+                "Family view explains the pattern. Actual code view preserves the precise source record.",
+            ),
+            (
+                "Data rule",
+                "No code replacement",
+                "Fault families are added as grouping, not used to overwrite actual fault codes.",
+            ),
+        ],
     )
 
 
@@ -122,17 +127,18 @@ def render_fault_family_tab(
 ) -> None:
     """Render fault family analysis tab."""
     render_section_header(
-        title="Fault Family Analysis",
+        title="Fault family analysis",
         subtitle="Management-level grouping for understanding broad fault patterns.",
     )
 
-    chart_col, table_col = st.columns([1.25, 1])
+    chart_col, table_col = st.columns([1.25, 1], gap="large")
 
     with chart_col:
-        st.plotly_chart(
-            build_fault_family_chart(fault_family_summary),
-            width="stretch",
-            key="fault_analysis_family_volume_chart",
+        render_chart_card(
+            title="Fault family volume",
+            subtitle="Grouped fault categories by callback volume.",
+            chart_key="fault_analysis_family_volume_chart",
+            figure=build_fault_family_chart(fault_family_summary),
         )
 
     with table_col:
@@ -160,46 +166,59 @@ def render_fault_family_tab(
         .tolist()
     )
 
-    selected_fault_families = st.multiselect(
-        "Select fault families for monthly trend",
-        options=fault_family_summary["fault_family_final"].tolist(),
-        default=default_families,
+    render_filter_panel_heading(
+        title="Fault family trend filters",
+        subtitle="Select grouped fault families to compare across the current period.",
     )
 
-    st.plotly_chart(
-        build_fault_family_trend_chart(
+    with st.container(border=True):
+        selected_fault_families = st.multiselect(
+            "Select fault families for monthly trend",
+            options=fault_family_summary["fault_family_final"].tolist(),
+            default=default_families,
+            key="fault_analysis_family_trend_filter",
+        )
+
+    render_chart_card(
+        title="Monthly fault family trend",
+        subtitle="Callback volume trend for selected fault families.",
+        chart_key="fault_analysis_family_trend_chart",
+        figure=build_fault_family_trend_chart(
             monthly_fault_family_trend=monthly_fault_family_trend,
             selected_fault_families=selected_fault_families,
         ),
-        width="stretch",
-        key="fault_analysis_family_trend_chart",
     )
 
 
 def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
     """Render actual fault-code analysis tab."""
     render_section_header(
-        title="Actual Fault Code Analysis",
+        title="Actual fault code analysis",
         subtitle="Original CRM fault codes with readable names, family grouping, and operational metrics.",
     )
 
-    chart_col_1, chart_col_2 = st.columns(2)
+    chart_col_1, chart_col_2 = st.columns(2, gap="large")
 
     with chart_col_1:
-        st.plotly_chart(
-            build_fault_code_volume_chart(fault_code_summary),
-            width="stretch",
-            key="fault_analysis_code_volume_chart",
+        render_chart_card(
+            title="Actual fault-code volume",
+            subtitle="Highest-volume original CRM fault codes.",
+            chart_key="fault_analysis_code_volume_chart",
+            figure=build_fault_code_volume_chart(fault_code_summary),
         )
 
     with chart_col_2:
-        st.plotly_chart(
-            build_fault_code_mantrap_chart(fault_code_summary),
-            width="stretch",
-            key="fault_analysis_code_mantrap_chart",
+        render_chart_card(
+            title="Actual fault-code mantraps",
+            subtitle="Original fault codes with the most mantrap events.",
+            chart_key="fault_analysis_code_mantrap_chart",
+            figure=build_fault_code_mantrap_chart(fault_code_summary),
         )
 
-    st.markdown("#### Actual Fault Code Detail")
+    render_section_header(
+        title="Actual fault-code detail",
+        subtitle="Original code detail retained for investigation and CSV export.",
+    )
 
     display_columns = [
         "fault_code_display",
@@ -243,7 +262,7 @@ def render_fault_code_trend_tab(
 ) -> None:
     """Render actual fault-code trend tab."""
     render_section_header(
-        title="Fault Code Trend",
+        title="Fault code trend",
         subtitle="Track selected actual CRM fault codes across the selected analysis period.",
     )
 
@@ -253,19 +272,27 @@ def render_fault_code_trend_tab(
         .tolist()
     )
 
-    selected_fault_codes = st.multiselect(
-        "Select actual fault codes",
-        options=fault_code_summary["fault_code_display"].tolist(),
-        default=top_fault_codes,
+    render_filter_panel_heading(
+        title="Fault-code trend filters",
+        subtitle="Select original CRM fault codes to track without changing the global period.",
     )
 
-    st.plotly_chart(
-        build_fault_code_trend_chart(
+    with st.container(border=True):
+        selected_fault_codes = st.multiselect(
+            "Select actual fault codes",
+            options=fault_code_summary["fault_code_display"].tolist(),
+            default=top_fault_codes,
+            key="fault_analysis_code_trend_filter",
+        )
+
+    render_chart_card(
+        title="Monthly actual fault-code trend",
+        subtitle="Callback volume trend for selected original fault codes.",
+        chart_key="fault_analysis_code_trend_chart",
+        figure=build_fault_code_trend_chart(
             monthly_fault_code_trend=monthly_fault_code_trend,
             selected_fault_codes=selected_fault_codes,
         ),
-        width="stretch",
-        key="fault_analysis_code_trend_chart",
     )
 
     selected_code_details = fault_code_summary[
@@ -310,14 +337,15 @@ def render_equipment_type_trend_tab(
 ) -> None:
     """Render equipment type trend tab."""
     render_section_header(
-        title="Equipment Type Trend",
+        title="Equipment type trend",
         subtitle="Shows how callback volume changes across elevator, escalator, and other equipment types.",
     )
 
-    st.plotly_chart(
-        build_equipment_type_trend_chart(monthly_equipment_type_trend),
-        width="stretch",
-        key="fault_analysis_equipment_type_trend_chart",
+    render_chart_card(
+        title="Monthly equipment type trend",
+        subtitle="Callback volume by equipment type across the selected period.",
+        chart_key="fault_analysis_equipment_type_trend_chart",
+        figure=build_equipment_type_trend_chart(monthly_equipment_type_trend),
     )
 
     st.dataframe(
@@ -339,7 +367,7 @@ def render_fault_analysis(
 ) -> None:
     """Render fault family and actual fault-code analysis."""
     render_section_header(
-        title="Fault Analysis",
+        title="Fault analysis",
         subtitle="Analyze both high-level fault families and the original recorded CRM fault codes.",
     )
 
@@ -350,10 +378,10 @@ def render_fault_analysis(
 
     family_tab, code_tab, trend_tab, equipment_tab = st.tabs(
         [
-            "Fault Family",
-            "Actual Fault Code",
-            "Fault Code Trend",
-            "Equipment Type Trend",
+            "Fault family",
+            "Actual fault code",
+            "Fault code trend",
+            "Equipment type trend",
         ]
     )
 

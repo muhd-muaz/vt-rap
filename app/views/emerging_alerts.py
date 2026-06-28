@@ -3,8 +3,12 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards import render_command_card
-from components.layout import render_section_header
+from components.cards_v2 import (
+    render_detail_panel,
+    render_filter_panel_heading,
+    render_metric_card,
+)
+from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 
 
@@ -34,34 +38,38 @@ def render_emerging_overview_cards(
         else 0
     )
 
-    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
 
     with card_col_1:
-        render_command_card(
-            title="Emerging Alerts",
+        render_metric_card(
+            title="Emerging alerts",
             value=f"{total_alerts:,}",
             caption="Low-history equipment with early warning signals.",
+            accent="default",
         )
 
     with card_col_2:
-        render_command_card(
-            title="Alert Callbacks",
+        render_metric_card(
+            title="Alert callbacks",
             value=f"{total_callbacks:,}",
             caption="Callback volume from emerging-alert equipment.",
+            accent="blue",
         )
 
     with card_col_3:
-        render_command_card(
-            title="Alert Mantraps",
+        render_metric_card(
+            title="Alert mantraps",
             value=f"{total_mantraps:,}",
             caption="Mantrap events from emerging-alert equipment.",
+            accent="danger",
         )
 
     with card_col_4:
-        render_command_card(
-            title="Recent Activity",
+        render_metric_card(
+            title="Recent activity",
             value=f"{high_recent_activity:,}",
             caption="Alert equipment with at least two recent 90-day callbacks.",
+            accent="warning",
         )
 
 
@@ -69,10 +77,13 @@ def filter_emerging_alerts(
     emerging_equipment_alerts: pd.DataFrame,
 ) -> pd.DataFrame:
     """Render emerging-alert filters and return filtered records."""
-    with st.container(border=True):
-        st.caption("Emerging alert filters")
+    render_filter_panel_heading(
+        title="Emerging alert filters",
+        subtitle="Prioritize early warning records without changing the global period filter.",
+    )
 
-        filter_col_1, filter_col_2, filter_col_3 = st.columns(3)
+    with st.container(border=True):
+        filter_col_1, filter_col_2, filter_col_3 = st.columns(3, gap="medium")
 
         with filter_col_1:
             minimum_callbacks = st.number_input(
@@ -150,9 +161,9 @@ def render_emerging_interpretation(
         ascending=False,
     ).iloc[0]
 
-    top_equipment = top_alert.get("equipment_description_raw", "-")
-    top_account = top_alert.get("account_name_raw", "-")
-    top_driver = top_alert.get("primary_risk_driver", "-")
+    top_equipment = format_text(top_alert.get("equipment_description_raw", "-"))
+    top_account = format_text(top_alert.get("account_name_raw", "-"))
+    top_driver = format_text(top_alert.get("primary_risk_driver", "-"))
     top_score = float(top_alert.get("equipment_risk_score_v3", 0))
 
     alert_with_mantraps = int(
@@ -161,41 +172,43 @@ def render_emerging_interpretation(
         else 0
     )
 
-    st.markdown(
-        f"""
-        <div class="insight-panel">
-            <div class="insight-panel-title">Emerging alert interpretation</div>
-            <div class="insight-grid">
-                <div>
-                    <span>Highest emerging score</span>
-                    <strong>{top_score:,.2f}</strong>
-                    <p>Highest composite risk score among filtered emerging alerts.</p>
-                </div>
-                <div>
-                    <span>Top equipment</span>
-                    <strong>{top_equipment}</strong>
-                    <p>Equipment with the strongest emerging warning signal.</p>
-                </div>
-                <div>
-                    <span>Linked account</span>
-                    <strong>{top_account}</strong>
-                    <p>Customer account associated with the top emerging alert.</p>
-                </div>
-                <div>
-                    <span>Main driver</span>
-                    <strong>{top_driver}</strong>
-                    <p>Main factor behind the top emerging alert.</p>
-                </div>
-                <div>
-                    <span>Alerts with mantraps</span>
-                    <strong>{alert_with_mantraps:,}</strong>
-                    <p>Emerging equipment where at least one mantrap event was recorded.</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_detail_panel(
+        eyebrow="Emerging interpretation",
+        title="Early warning focus for the filtered set",
+        score_label="Top score",
+        score_value=f"{top_score:,.2f}",
+        items=[
+            (
+                "Top equipment",
+                top_equipment,
+                "Equipment with the strongest emerging warning signal.",
+            ),
+            (
+                "Linked account",
+                top_account,
+                "Customer account associated with the top emerging alert.",
+            ),
+            (
+                "Main driver",
+                top_driver,
+                "Main factor behind the top emerging alert.",
+            ),
+            (
+                "Alerts with mantraps",
+                f"{alert_with_mantraps:,}",
+                "Emerging equipment where at least one mantrap event was recorded.",
+            ),
+        ],
     )
+
+
+def format_text(value, fallback: str = "-") -> str:
+    """Format source text for V2 display helpers."""
+    if value is None or pd.isna(value):
+        return fallback
+
+    value_text = str(value).strip()
+    return value_text if value_text else fallback
 
 
 def render_emerging_alert_table(filtered_alerts: pd.DataFrame) -> None:
@@ -243,7 +256,7 @@ def render_emerging_alerts(
 ) -> None:
     """Render emerging equipment alert dashboard page."""
     render_section_header(
-        title="Emerging Alerts",
+        title="Emerging alerts",
         subtitle="Detect low-history equipment that already shows early warning signals from recent callbacks, mantraps, or risk-score behavior.",
     )
 

@@ -5,7 +5,11 @@ import html
 import pandas as pd
 import streamlit as st
 
-from components.cards_v2 import render_chart_card, render_metric_card
+from components.cards_v2 import (
+    render_chart_card,
+    render_filter_panel_heading,
+    render_metric_card,
+)
 from components.charts import (
     build_equipment_fault_mix_chart,
     build_equipment_monthly_chart,
@@ -46,14 +50,9 @@ def get_available_equipment_types(equipment_risk_model: pd.DataFrame) -> list[st
 
 def filter_equipment_risk_model(equipment_risk_model: pd.DataFrame) -> pd.DataFrame:
     """Render filters and return filtered equipment risk model."""
-    st.markdown(
-        """
-        <div class="v2-filter-panel-heading">
-            <div class="v2-filter-panel-title">Equipment risk filters</div>
-            <div class="v2-filter-panel-subtitle">Narrow the ranked equipment set without changing the global period filter.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_filter_panel_heading(
+        title="Equipment risk filters",
+        subtitle="Narrow the ranked equipment set without changing the global period filter.",
     )
 
     with st.container(border=True):
