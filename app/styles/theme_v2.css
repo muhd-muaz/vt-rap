@@ -715,6 +715,30 @@ div[data-testid="stVerticalBlockBorderWrapper"]:has([data-testid="stNumberInput"
     margin: 0.36rem 0 0;
 }
 
+.v2-empty-state {
+    margin: 1rem 0 1.18rem;
+    padding: 1.15rem 1rem;
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 68%),
+        rgba(17, 21, 28, 0.78);
+    border: 1px solid var(--vt-border);
+    box-shadow: var(--vt-shadow-card);
+}
+
+.v2-empty-title {
+    color: var(--vt-text);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.v2-empty-message {
+    color: var(--vt-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-top: 0.22rem;
+}
+
 div[data-testid="stTabs"] button {
     color: var(--vt-text-soft);
     border-radius: 10px 10px 0 0;
@@ -978,16 +1002,6 @@ div[data-testid="stDataFrame"] {
     .v2-equipment-profile-grid > div.span-2 {
         grid-column: span 1;
     }
-}
-
-/* --- V2 layout correction: prevent glass sidebar overlap --- */
-section[data-testid="stSidebar"] {
-    width: 286px !important;
-    min-width: 286px !important;
-}
-
-section[data-testid="stSidebar"] > div {
-    width: 286px !important;
 }
 
 section[data-testid="stMain"] {

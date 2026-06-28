@@ -111,37 +111,49 @@ def render_detail_panel(
     if score_label is not None and score_value is not None:
         safe_score_label = html.escape(str(score_label))
         safe_score_value = html.escape(str(score_value))
-        score_markup = f"""
-                <div class="v2-detail-score">
-                    <span>{safe_score_label}</span>
-                    <strong>{safe_score_value}</strong>
-                </div>
-        """
+        score_markup = (
+            '<div class="v2-detail-score">'
+            f"<span>{safe_score_label}</span>"
+            f"<strong>{safe_score_value}</strong>"
+            "</div>"
+        )
 
     item_markup = "\n".join(
-        f"""
-                <div>
-                    <span>{html.escape(str(label))}</span>
-                    <strong>{html.escape(str(value))}</strong>
-                    <p>{html.escape(str(caption))}</p>
-                </div>
-        """
+        "<div>"
+        f"<span>{html.escape(str(label))}</span>"
+        f"<strong>{html.escape(str(value))}</strong>"
+        f"<p>{html.escape(str(caption))}</p>"
+        "</div>"
         for label, value, caption in items
     )
 
     st.markdown(
+        (
+            '<div class="v2-detail-panel">'
+            '<div class="v2-detail-heading">'
+            "<div>"
+            f'<div class="v2-eyebrow">{safe_eyebrow}</div>'
+            f'<div class="v2-detail-title">{safe_title}</div>'
+            "</div>"
+            f"{score_markup}"
+            "</div>"
+            f'<div class="v2-detail-grid">{item_markup}</div>'
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+
+def render_empty_state(title: str, message: str) -> None:
+    """Render a calm V2 empty state."""
+    safe_title = html.escape(str(title))
+    safe_message = html.escape(str(message))
+
+    st.markdown(
         f"""
-        <div class="v2-detail-panel">
-            <div class="v2-detail-heading">
-                <div>
-                    <div class="v2-eyebrow">{safe_eyebrow}</div>
-                    <div class="v2-detail-title">{safe_title}</div>
-                </div>
-                {score_markup}
-            </div>
-            <div class="v2-detail-grid">
-                {item_markup}
-            </div>
+        <div class="v2-empty-state">
+            <div class="v2-empty-title">{safe_title}</div>
+            <div class="v2-empty-message">{safe_message}</div>
         </div>
         """,
         unsafe_allow_html=True,

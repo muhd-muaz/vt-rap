@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import html
-
 import pandas as pd
 import streamlit as st
 
 from components.cards_v2 import (
     render_chart_card,
+    render_detail_panel,
+    render_empty_state,
     render_filter_panel_heading,
     render_metric_card,
 )
@@ -189,7 +189,7 @@ def render_equipment_overview_cards(equipment_risk_model: pd.DataFrame) -> None:
 
 
 def format_profile_text(value, fallback: str = "-") -> str:
-    """Format and escape source text for HTML rendering."""
+    """Format source text for V2 display helpers."""
     if value is None or pd.isna(value):
         return fallback
 
@@ -197,7 +197,7 @@ def format_profile_text(value, fallback: str = "-") -> str:
     if not value_text:
         return fallback
 
-    return html.escape(value_text)
+    return value_text
 
 
 def format_profile_int(value) -> str:
@@ -222,68 +222,52 @@ def format_profile_float(value) -> str:
 
 def render_selected_equipment_profile(selected_row: pd.Series) -> None:
     """Render selected equipment profile cards."""
-    equipment = format_profile_text(selected_row.get("equipment_description_raw", "-"))
-    account = format_profile_text(selected_row.get("account_name_raw", "-"))
-    risk_tier = format_profile_text(selected_row.get("risk_tier", "-"))
-    primary_driver = format_profile_text(selected_row.get("primary_risk_driver", "-"))
-    signal_type = format_profile_text(selected_row.get("risk_signal_type", "-"))
-    callbacks = format_profile_int(selected_row.get("callbacks", 0))
-    mantraps = format_profile_int(selected_row.get("mantraps", 0))
-    risk_score = format_profile_float(selected_row.get("equipment_risk_score_v3", 0))
-
-    st.markdown(
-        f"""
-        <div class="v2-equipment-profile-panel">
-            <div class="v2-equipment-profile-heading">
-                <div>
-                    <div class="v2-eyebrow">Selected equipment</div>
-                    <div class="v2-equipment-profile-title">Risk profile and service context</div>
-                </div>
-                <div class="v2-equipment-profile-score">
-                    <span>Risk score</span>
-                    <strong>{risk_score}</strong>
-                </div>
-            </div>
-            <div class="v2-equipment-profile-grid">
-                <div class="span-2">
-                    <span>Equipment</span>
-                    <strong>{equipment}</strong>
-                    <p>Original equipment description used for risk grouping.</p>
-                </div>
-                <div class="span-2">
-                    <span>Account</span>
-                    <strong>{account}</strong>
-                    <p>Customer account linked to this equipment.</p>
-                </div>
-                <div>
-                    <span>Risk tier</span>
-                    <strong>{risk_tier}</strong>
-                    <p>Current risk classification for the selected period.</p>
-                </div>
-                <div>
-                    <span>Primary driver</span>
-                    <strong>{primary_driver}</strong>
-                    <p>Main factor contributing to the equipment risk score.</p>
-                </div>
-                <div>
-                    <span>Callbacks</span>
-                    <strong>{callbacks}</strong>
-                    <p>Total callback volume for this equipment.</p>
-                </div>
-                <div>
-                    <span>Mantraps</span>
-                    <strong>{mantraps}</strong>
-                    <p>Mantrap-related callback events.</p>
-                </div>
-                <div>
-                    <span>Signal type</span>
-                    <strong>{signal_type}</strong>
-                    <p>Established, watchlist, or emerging risk signal.</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    render_detail_panel(
+        eyebrow="Selected equipment",
+        title="Risk profile and service context",
+        score_label="Risk score",
+        score_value=format_profile_float(
+            selected_row.get("equipment_risk_score_v3", 0)
+        ),
+        items=[
+            (
+                "Equipment",
+                format_profile_text(
+                    selected_row.get("equipment_description_raw", "-")
+                ),
+                "Original equipment description used for risk grouping.",
+            ),
+            (
+                "Account",
+                format_profile_text(selected_row.get("account_name_raw", "-")),
+                "Customer account linked to this equipment.",
+            ),
+            (
+                "Risk tier",
+                format_profile_text(selected_row.get("risk_tier", "-")),
+                "Current risk classification for the selected period.",
+            ),
+            (
+                "Primary driver",
+                format_profile_text(selected_row.get("primary_risk_driver", "-")),
+                "Main factor contributing to the equipment risk score.",
+            ),
+            (
+                "Callbacks",
+                format_profile_int(selected_row.get("callbacks", 0)),
+                "Total callback volume for this equipment.",
+            ),
+            (
+                "Mantraps",
+                format_profile_int(selected_row.get("mantraps", 0)),
+                "Mantrap-related callback events.",
+            ),
+            (
+                "Signal type",
+                format_profile_text(selected_row.get("risk_signal_type", "-")),
+                "Established, watchlist, or emerging risk signal.",
+            ),
+        ],
     )
 
 
@@ -336,6 +320,13 @@ def render_equipment_risk(
         subtitle="Identify high-risk equipment, inspect the main risk drivers, and drill into trend and fault-mix behavior.",
     )
 
+    if equipment_risk_model.empty:
+        render_empty_state(
+            title="No equipment risk records",
+            message="The selected global period has no equipment records to analyze.",
+        )
+        return
+
     render_equipment_overview_cards(equipment_risk_model)
 
     filtered_equipment = filter_equipment_risk_model(equipment_risk_model)
@@ -375,6 +366,7 @@ def render_equipment_risk(
 
     selected_row = drilldown_equipment.iloc[selected_position]
     selected_equipment = str(selected_row.get("equipment_description_raw", ""))
+    selected_account_name = str(selected_row.get("account_name_raw", ""))
 
     render_selected_equipment_profile(selected_row)
 
@@ -393,6 +385,7 @@ def render_equipment_risk(
             figure=build_equipment_monthly_chart(
                 monthly_equipment_trend=monthly_equipment_trend,
                 selected_equipment=selected_equipment,
+                selected_account_name=selected_account_name,
             ),
         )
 
@@ -404,5 +397,6 @@ def render_equipment_risk(
             figure=build_equipment_fault_mix_chart(
                 equipment_fault_family_mix=equipment_fault_family_mix,
                 selected_equipment=selected_equipment,
+                selected_account_name=selected_account_name,
             ),
         )

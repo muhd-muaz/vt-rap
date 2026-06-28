@@ -6,6 +6,7 @@ import streamlit as st
 from components.cards_v2 import (
     render_chart_card,
     render_detail_panel,
+    render_empty_state,
     render_filter_panel_heading,
     render_metric_card,
 )
@@ -50,13 +51,19 @@ def render_fault_overview_cards(
     top_family = get_top_fault_family(fault_family_summary)
     top_code = get_top_fault_code(fault_code_summary)
 
-    total_mantraps = int(fault_code_summary["mantraps"].sum())
+    total_mantraps = int(
+        fault_code_summary["mantraps"].sum()
+        if "mantraps" in fault_code_summary.columns
+        else 0
+    )
 
     high_mantrap_codes = int(
         fault_code_summary[
             (fault_code_summary["callbacks"] >= 10)
             & (fault_code_summary["mantrap_rate_pct"] >= 20)
         ].shape[0]
+        if {"callbacks", "mantrap_rate_pct"}.issubset(fault_code_summary.columns)
+        else 0
     )
 
     card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
@@ -100,22 +107,22 @@ def render_fault_overview_cards(
             (
                 "Top fault family",
                 top_family,
-                "Highest-volume grouped fault category in the selected period.",
+                "Highest-volume grouped category.",
             ),
             (
                 "Top actual fault code",
                 top_code,
-                "Most frequent original CRM fault code for operational investigation.",
+                "Most frequent original CRM code.",
             ),
             (
-                "Recommended view",
+                "Review mode",
                 "Use both levels",
-                "Family view explains the pattern. Actual code view preserves the precise source record.",
+                "Family for patterns. Code for investigation.",
             ),
             (
                 "Data rule",
                 "No code replacement",
-                "Fault families are added as grouping, not used to overwrite actual fault codes.",
+                "Actual fault codes stay intact.",
             ),
         ],
     )
@@ -126,6 +133,13 @@ def render_fault_family_tab(
     monthly_fault_family_trend: pd.DataFrame,
 ) -> None:
     """Render fault family analysis tab."""
+    if fault_family_summary.empty:
+        render_empty_state(
+            title="No fault family records",
+            message="The selected global period has no fault family records to display.",
+        )
+        return
+
     render_section_header(
         title="Fault family analysis",
         subtitle="Management-level grouping for understanding broad fault patterns.",
@@ -192,6 +206,13 @@ def render_fault_family_tab(
 
 def render_actual_fault_code_tab(fault_code_summary: pd.DataFrame) -> None:
     """Render actual fault-code analysis tab."""
+    if fault_code_summary.empty:
+        render_empty_state(
+            title="No actual fault-code records",
+            message="The selected global period has no fault-code records to display.",
+        )
+        return
+
     render_section_header(
         title="Actual fault code analysis",
         subtitle="Original CRM fault codes with readable names, family grouping, and operational metrics.",
@@ -261,6 +282,13 @@ def render_fault_code_trend_tab(
     monthly_fault_code_trend: pd.DataFrame,
 ) -> None:
     """Render actual fault-code trend tab."""
+    if fault_code_summary.empty:
+        render_empty_state(
+            title="No fault-code trend records",
+            message="The selected global period has no fault codes to trend.",
+        )
+        return
+
     render_section_header(
         title="Fault code trend",
         subtitle="Track selected actual CRM fault codes across the selected analysis period.",
@@ -336,6 +364,13 @@ def render_equipment_type_trend_tab(
     monthly_equipment_type_trend: pd.DataFrame,
 ) -> None:
     """Render equipment type trend tab."""
+    if monthly_equipment_type_trend.empty:
+        render_empty_state(
+            title="No equipment type trend",
+            message="The selected global period has no equipment type trend records.",
+        )
+        return
+
     render_section_header(
         title="Equipment type trend",
         subtitle="Shows how callback volume changes across elevator, escalator, and other equipment types.",
@@ -370,6 +405,13 @@ def render_fault_analysis(
         title="Fault analysis",
         subtitle="Analyze both high-level fault families and the original recorded CRM fault codes.",
     )
+
+    if fault_family_summary.empty and fault_code_summary.empty:
+        render_empty_state(
+            title="No fault analysis records",
+            message="The selected global period has no fault records to analyze.",
+        )
+        return
 
     render_fault_overview_cards(
         fault_family_summary=fault_family_summary,

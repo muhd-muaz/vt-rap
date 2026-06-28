@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import streamlit as st
 
@@ -73,12 +75,16 @@ def render_app_header() -> None:
 
 def render_command_card(title: str, value: str, caption: str = "") -> None:
     """Render a styled metric card."""
+    safe_title = html.escape(str(title))
+    safe_value = html.escape(str(value))
+    safe_caption = html.escape(str(caption))
+
     st.markdown(
         f"""
         <div class="command-card">
-            <div class="command-card-title">{title}</div>
-            <div class="command-card-value">{value}</div>
-            <div class="command-card-caption">{caption}</div>
+            <div class="command-card-title">{safe_title}</div>
+            <div class="command-card-value">{safe_value}</div>
+            <div class="command-card-caption">{safe_caption}</div>
         </div>
         """,
         unsafe_allow_html=True,

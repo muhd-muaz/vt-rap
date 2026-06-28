@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import streamlit as st
 
@@ -21,25 +23,35 @@ def render_management_interpretation(
     emerging_equipment_alerts: pd.DataFrame,
 ) -> None:
     """Render concise management interpretation for the current period."""
-    analyzed_callbacks = get_summary_value(
+    analyzed_callbacks = html.escape(get_summary_value(
         executive_summary,
         "Completed / verified callbacks",
+    ))
+    total_mantraps = html.escape(
+        get_summary_value(executive_summary, "Total mantraps")
     )
-    total_mantraps = get_summary_value(executive_summary, "Total mantraps")
-    median_response = get_summary_value(
+    median_response = html.escape(get_summary_value(
         executive_summary,
         "Median response minutes",
-    )
-    median_repair = get_summary_value(
+    ))
+    median_repair = html.escape(get_summary_value(
         executive_summary,
         "Median repair minutes",
+    ))
+    top_fault_family = html.escape(
+        get_summary_value(executive_summary, "Top fault family")
     )
-    top_fault_family = get_summary_value(executive_summary, "Top fault family")
-    top_risk_account = get_summary_value(executive_summary, "Top risk account")
-    top_risk_equipment = get_summary_value(executive_summary, "Top risk equipment")
+    top_risk_account = html.escape(
+        get_summary_value(executive_summary, "Top risk account")
+    )
+    top_risk_equipment = html.escape(
+        get_summary_value(executive_summary, "Top risk equipment")
+    )
 
     if top_fault_family == "-" and not fault_family_summary.empty:
-        top_fault_family = str(fault_family_summary.iloc[0]["fault_family_final"])
+        top_fault_family = html.escape(
+            str(fault_family_summary.iloc[0]["fault_family_final"])
+        )
 
     critical_equipment = 0
     if "risk_tier" in equipment_risk_model.columns:
@@ -213,6 +225,17 @@ def render_executive_overview(
             "mantrap exposure, response timing, and reliability risk."
         ),
     )
+
+    if (
+        executive_summary.empty
+        and fault_family_summary.empty
+        and equipment_risk_model.empty
+        and account_risk_model.empty
+        and emerging_equipment_alerts.empty
+        and monthly_callback_trend.empty
+    ):
+        st.info("No executive summary records for the selected period.")
+        return
 
     kpi_col_1, kpi_col_2, kpi_col_3, kpi_col_4 = st.columns(4)
 

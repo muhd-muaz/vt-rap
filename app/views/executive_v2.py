@@ -6,7 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from components.cards import get_summary_value
-from components.cards_v2 import render_summary_metric_card
+from components.cards_v2 import render_empty_state, render_summary_metric_card
 from components.charts import (
     build_fault_family_chart,
     build_monthly_callback_chart,
@@ -122,6 +122,20 @@ def render_executive_overview_v2(
     monthly_callback_trend: pd.DataFrame,
 ) -> None:
     """Render redesigned executive overview page."""
+    if (
+        executive_summary.empty
+        and fault_family_summary.empty
+        and equipment_risk_model.empty
+        and account_risk_model.empty
+        and emerging_equipment_alerts.empty
+        and monthly_callback_trend.empty
+    ):
+        render_empty_state(
+            title="No executive summary records",
+            message="The selected global period has no dashboard records to summarize.",
+        )
+        return
+
     kpi_col_1, kpi_col_2, kpi_col_3, kpi_col_4 = st.columns(4, gap="medium")
 
     with kpi_col_1:

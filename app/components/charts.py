@@ -35,6 +35,17 @@ CHART_COLOR_SEQUENCE = [
 ]
 
 
+def build_empty_chart(message: str, height: int):
+    """Build an empty chart surface with a clear annotation."""
+    figure = go.Figure()
+    figure.add_annotation(
+        text=message,
+        showarrow=False,
+        font={"color": TEXT_MUTED, "size": 14},
+    )
+    return apply_modern_dark_layout(figure, height=height)
+
+
 def apply_modern_dark_layout(
     figure,
     height: int,
@@ -176,6 +187,12 @@ def build_smooth_line_chart(
 
 def build_monthly_callback_chart(monthly_callback_trend: pd.DataFrame):
     """Build callback and mantrap monthly trend chart."""
+    required_columns = {"event_month", "callbacks", "mantraps"}
+    if monthly_callback_trend.empty or not required_columns.issubset(
+        monthly_callback_trend.columns
+    ):
+        return build_empty_chart("No monthly callback data available.", height=430)
+
     trend = prepare_month_label(monthly_callback_trend)
 
     melted = trend.melt(
@@ -222,6 +239,16 @@ def build_monthly_callback_chart(monthly_callback_trend: pd.DataFrame):
 
 def build_monthly_response_repair_chart(monthly_callback_trend: pd.DataFrame):
     """Build median response and repair monthly trend chart."""
+    required_columns = {
+        "event_month",
+        "median_response_minutes",
+        "median_repair_minutes",
+    }
+    if monthly_callback_trend.empty or not required_columns.issubset(
+        monthly_callback_trend.columns
+    ):
+        return build_empty_chart("No response or repair timing data available.", height=430)
+
     trend = prepare_month_label(monthly_callback_trend)
 
     melted = trend.melt(
@@ -268,6 +295,12 @@ def build_monthly_response_repair_chart(monthly_callback_trend: pd.DataFrame):
 
 def build_fault_family_chart(fault_family_summary: pd.DataFrame):
     """Build fault-family callback volume chart."""
+    required_columns = {"fault_family_final", "callbacks"}
+    if fault_family_summary.empty or not required_columns.issubset(
+        fault_family_summary.columns
+    ):
+        return build_empty_chart("No fault family data available.", height=480)
+
     chart_data = fault_family_summary.sort_values("callbacks", ascending=True)
 
     figure = px.bar(
@@ -310,6 +343,12 @@ def build_fault_family_trend_chart(
     selected_fault_families: list[str],
 ):
     """Build monthly trend for selected fault families."""
+    required_columns = {"event_month", "fault_family_final", "callbacks"}
+    if monthly_fault_family_trend.empty or not required_columns.issubset(
+        monthly_fault_family_trend.columns
+    ):
+        return build_empty_chart("No fault family trend data available.", height=520)
+
     trend = monthly_fault_family_trend[
         monthly_fault_family_trend["fault_family_final"].isin(selected_fault_families)
     ].copy()
@@ -354,6 +393,12 @@ def build_fault_family_trend_chart(
 
 def build_equipment_type_trend_chart(monthly_equipment_type_trend: pd.DataFrame):
     """Build monthly equipment type callback trend."""
+    required_columns = {"event_month", "equipment_type", "callbacks"}
+    if monthly_equipment_type_trend.empty or not required_columns.issubset(
+        monthly_equipment_type_trend.columns
+    ):
+        return build_empty_chart("No equipment type trend data available.", height=520)
+
     top_equipment_types = (
         monthly_equipment_type_trend.groupby("equipment_type")["callbacks"]
         .sum()
@@ -399,6 +444,12 @@ def build_equipment_type_trend_chart(monthly_equipment_type_trend: pd.DataFrame)
 
 def build_top_account_chart(account_risk_model: pd.DataFrame):
     """Build top account risk chart."""
+    required_columns = {"account_name_raw", "account_risk_score"}
+    if account_risk_model.empty or not required_columns.issubset(
+        account_risk_model.columns
+    ):
+        return build_empty_chart("No account risk data available.", height=520)
+
     chart_data = account_risk_model.head(15).sort_values(
         "account_risk_score",
         ascending=True,
@@ -441,6 +492,12 @@ def build_account_monthly_chart(
     selected_account_name: str,
 ):
     """Build monthly trend for selected account."""
+    required_columns = {"event_month", "account_name_raw", "callbacks", "mantraps"}
+    if monthly_account_trend.empty or not required_columns.issubset(
+        monthly_account_trend.columns
+    ):
+        return build_empty_chart("No monthly account trend data available.", height=460)
+
     trend = monthly_account_trend[
         monthly_account_trend["account_name_raw"].eq(selected_account_name)
     ].copy()
@@ -492,11 +549,27 @@ def build_account_monthly_chart(
 def build_equipment_monthly_chart(
     monthly_equipment_trend: pd.DataFrame,
     selected_equipment: str,
+    selected_account_name: str | None = None,
 ):
     """Build monthly callback and mantrap trend for selected equipment."""
+    required_columns = {"event_month", "equipment_description_raw", "callbacks", "mantraps"}
+    if monthly_equipment_trend.empty or not required_columns.issubset(
+        monthly_equipment_trend.columns
+    ):
+        return build_empty_chart("No monthly equipment trend data available.", height=460)
+
     trend = monthly_equipment_trend[
         monthly_equipment_trend["equipment_description_raw"].eq(selected_equipment)
     ].copy()
+
+    if selected_account_name is not None and "account_name_raw" in trend.columns:
+        trend = trend[trend["account_name_raw"].eq(selected_account_name)].copy()
+
+    if trend.empty:
+        return build_empty_chart(
+            "No monthly trend data available for the selected equipment.",
+            height=460,
+        )
 
     trend = prepare_month_label(trend)
 
@@ -545,11 +618,27 @@ def build_equipment_monthly_chart(
 def build_equipment_fault_mix_chart(
     equipment_fault_family_mix: pd.DataFrame,
     selected_equipment: str,
+    selected_account_name: str | None = None,
 ):
     """Build fault family mix chart for selected equipment."""
+    required_columns = {"equipment_description_raw", "fault_family_final", "callbacks"}
+    if equipment_fault_family_mix.empty or not required_columns.issubset(
+        equipment_fault_family_mix.columns
+    ):
+        return build_empty_chart("No equipment fault-family mix data available.", height=460)
+
     mix = equipment_fault_family_mix[
         equipment_fault_family_mix["equipment_description_raw"].eq(selected_equipment)
     ].copy()
+
+    if selected_account_name is not None and "account_name_raw" in mix.columns:
+        mix = mix[mix["account_name_raw"].eq(selected_account_name)].copy()
+
+    if mix.empty:
+        return build_empty_chart(
+            "No fault-family mix data available for the selected equipment.",
+            height=460,
+        )
 
     mix = mix.sort_values("callbacks", ascending=True)
 
@@ -590,6 +679,12 @@ def build_account_fault_mix_chart(
     selected_account_name: str,
 ):
     """Build fault family mix chart for selected account."""
+    required_columns = {"account_name_raw", "fault_family_final", "callbacks"}
+    if account_fault_family_mix.empty or not required_columns.issubset(
+        account_fault_family_mix.columns
+    ):
+        return build_empty_chart("No account fault-family mix data available.", height=460)
+
     mix = account_fault_family_mix[
         account_fault_family_mix["account_name_raw"].eq(selected_account_name)
     ].copy()
@@ -631,6 +726,12 @@ def build_account_fault_mix_chart(
 
 def build_fault_code_volume_chart(fault_code_summary: pd.DataFrame):
     """Build actual fault-code callback volume chart."""
+    required_columns = {"fault_code_display", "fault_code_name", "callbacks"}
+    if fault_code_summary.empty or not required_columns.issubset(
+        fault_code_summary.columns
+    ):
+        return build_empty_chart("No fault-code volume data available.", height=620)
+
     chart_data = (
         fault_code_summary.sort_values("callbacks", ascending=False)
         .head(20)
@@ -640,7 +741,7 @@ def build_fault_code_volume_chart(fault_code_summary: pd.DataFrame):
 
     chart_data["fault_code_label"] = (
         chart_data["fault_code_display"].astype(str)
-        + " — "
+        + " - "
         + chart_data["fault_code_name"].astype(str)
     )
 
@@ -680,6 +781,12 @@ def build_fault_code_volume_chart(fault_code_summary: pd.DataFrame):
 
 def build_fault_code_mantrap_chart(fault_code_summary: pd.DataFrame):
     """Build actual fault-code mantrap volume chart."""
+    required_columns = {"fault_code_display", "fault_code_name", "mantraps"}
+    if fault_code_summary.empty or not required_columns.issubset(
+        fault_code_summary.columns
+    ):
+        return build_empty_chart("No fault-code mantrap data available.", height=620)
+
     chart_data = (
         fault_code_summary.sort_values("mantraps", ascending=False)
         .head(20)
@@ -689,7 +796,7 @@ def build_fault_code_mantrap_chart(fault_code_summary: pd.DataFrame):
 
     chart_data["fault_code_label"] = (
         chart_data["fault_code_display"].astype(str)
-        + " — "
+        + " - "
         + chart_data["fault_code_name"].astype(str)
     )
 
@@ -732,6 +839,12 @@ def build_fault_code_trend_chart(
     selected_fault_codes: list[str],
 ):
     """Build monthly trend for selected actual fault codes."""
+    required_columns = {"event_month", "fault_code_display", "callbacks"}
+    if monthly_fault_code_trend.empty or not required_columns.issubset(
+        monthly_fault_code_trend.columns
+    ):
+        return build_empty_chart("No fault-code trend data available.", height=520)
+
     trend = monthly_fault_code_trend[
         monthly_fault_code_trend["fault_code_display"].isin(selected_fault_codes)
     ].copy()

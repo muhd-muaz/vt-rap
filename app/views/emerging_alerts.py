@@ -5,6 +5,7 @@ import streamlit as st
 
 from components.cards_v2 import (
     render_detail_panel,
+    render_empty_state,
     render_filter_panel_heading,
     render_metric_card,
 )
@@ -202,6 +203,73 @@ def render_emerging_interpretation(
     )
 
 
+def render_filtered_alert_summary(filtered_alerts: pd.DataFrame) -> None:
+    """Render compact priority readout for the filtered emerging-alert set."""
+    alert_count = len(filtered_alerts)
+    alert_with_mantraps = int(
+        filtered_alerts[filtered_alerts["mantraps"].gt(0)].shape[0]
+        if "mantraps" in filtered_alerts.columns
+        else 0
+    )
+    recent_callbacks = int(
+        filtered_alerts["callbacks_last_90_days"].sum()
+        if "callbacks_last_90_days" in filtered_alerts.columns
+        else 0
+    )
+    top_score = (
+        filtered_alerts["equipment_risk_score_v3"].max()
+        if "equipment_risk_score_v3" in filtered_alerts.columns
+        else 0
+    )
+
+    summary_col_1, summary_col_2, summary_col_3, summary_col_4 = st.columns(
+        4,
+        gap="medium",
+    )
+
+    with summary_col_1:
+        render_metric_card(
+            title="Filtered alerts",
+            value=f"{alert_count:,}",
+            caption="Emerging records after page-level filters.",
+            accent="default",
+        )
+
+    with summary_col_2:
+        render_metric_card(
+            title="With mantraps",
+            value=f"{alert_with_mantraps:,}",
+            caption="Filtered alerts with at least one mantrap.",
+            accent="danger",
+        )
+
+    with summary_col_3:
+        render_metric_card(
+            title="Recent callbacks",
+            value=f"{recent_callbacks:,}",
+            caption="90-day callback volume in the filtered set.",
+            accent="blue",
+        )
+
+    with summary_col_4:
+        render_metric_card(
+            title="Highest score",
+            value=format_float(top_score),
+            caption="Maximum equipment risk score in the filtered set.",
+            accent="warning",
+        )
+
+
+def format_float(value) -> str:
+    """Format decimal display values."""
+    try:
+        if value is None or pd.isna(value):
+            return "0.00"
+        return f"{float(value):,.2f}"
+    except (TypeError, ValueError):
+        return "0.00"
+
+
 def format_text(value, fallback: str = "-") -> str:
     """Format source text for V2 display helpers."""
     if value is None or pd.isna(value):
@@ -261,7 +329,10 @@ def render_emerging_alerts(
     )
 
     if emerging_equipment_alerts.empty:
-        st.info("No emerging equipment alerts for the selected period.")
+        render_empty_state(
+            title="No emerging equipment alerts",
+            message="The selected global period has no low-history equipment alerts.",
+        )
         return
 
     render_emerging_overview_cards(emerging_equipment_alerts)
@@ -277,6 +348,12 @@ def render_emerging_alerts(
         ascending=False,
     )
 
+    render_section_header(
+        title="Filtered alert priority",
+        subtitle="Fast readout of the alert set after local filters are applied.",
+    )
+
+    render_filtered_alert_summary(filtered_alerts)
     render_emerging_interpretation(filtered_alerts)
 
     render_section_header(

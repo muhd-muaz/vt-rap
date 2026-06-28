@@ -6,6 +6,7 @@ import streamlit as st
 from components.cards_v2 import (
     render_chart_card,
     render_detail_panel,
+    render_empty_state,
     render_filter_panel_heading,
     render_metric_card,
 )
@@ -348,6 +349,13 @@ def render_account_risk(
         title="Account risk",
         subtitle="Identify customer accounts with concentrated callback volume, mantrap exposure, and equipment reliability risk.",
     )
+
+    if account_risk_model.empty:
+        render_empty_state(
+            title="No account risk records",
+            message="The selected global period has no account records to analyze.",
+        )
+        return
 
     render_account_overview_cards(account_risk_model)
 

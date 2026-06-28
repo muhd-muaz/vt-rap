@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards_v2 import render_detail_panel, render_metric_card
+from components.cards_v2 import render_detail_panel, render_empty_state, render_metric_card
 from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 
@@ -282,6 +282,13 @@ def render_data_quality(
         title="Data quality",
         subtitle="Audit source completeness, status coverage, timing validity, and fault-code matching.",
     )
+
+    if data_quality_summary.empty:
+        render_empty_state(
+            title="No data quality summary",
+            message="The selected global period has no generated quality checks to display.",
+        )
+        return
 
     render_quality_overview_cards(data_quality_summary)
     render_quality_risk_cards(data_quality_summary)
