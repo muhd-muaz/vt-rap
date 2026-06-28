@@ -247,7 +247,9 @@ def build_monthly_response_repair_chart(monthly_callback_trend: pd.DataFrame):
     if monthly_callback_trend.empty or not required_columns.issubset(
         monthly_callback_trend.columns
     ):
-        return build_empty_chart("No response or repair timing data available.", height=430)
+        return build_empty_chart(
+            "No response or repair timing data available.", height=430
+        )
 
     trend = prepare_month_label(monthly_callback_trend)
 
@@ -552,11 +554,18 @@ def build_equipment_monthly_chart(
     selected_account_name: str | None = None,
 ):
     """Build monthly callback and mantrap trend for selected equipment."""
-    required_columns = {"event_month", "equipment_description_raw", "callbacks", "mantraps"}
+    required_columns = {
+        "event_month",
+        "equipment_description_raw",
+        "callbacks",
+        "mantraps",
+    }
     if monthly_equipment_trend.empty or not required_columns.issubset(
         monthly_equipment_trend.columns
     ):
-        return build_empty_chart("No monthly equipment trend data available.", height=460)
+        return build_empty_chart(
+            "No monthly equipment trend data available.", height=460
+        )
 
     trend = monthly_equipment_trend[
         monthly_equipment_trend["equipment_description_raw"].eq(selected_equipment)
@@ -625,7 +634,9 @@ def build_equipment_fault_mix_chart(
     if equipment_fault_family_mix.empty or not required_columns.issubset(
         equipment_fault_family_mix.columns
     ):
-        return build_empty_chart("No equipment fault-family mix data available.", height=460)
+        return build_empty_chart(
+            "No equipment fault-family mix data available.", height=460
+        )
 
     mix = equipment_fault_family_mix[
         equipment_fault_family_mix["equipment_description_raw"].eq(selected_equipment)
@@ -683,7 +694,9 @@ def build_account_fault_mix_chart(
     if account_fault_family_mix.empty or not required_columns.issubset(
         account_fault_family_mix.columns
     ):
-        return build_empty_chart("No account fault-family mix data available.", height=460)
+        return build_empty_chart(
+            "No account fault-family mix data available.", height=460
+        )
 
     mix = account_fault_family_mix[
         account_fault_family_mix["account_name_raw"].eq(selected_account_name)

@@ -774,50 +774,103 @@ def build_executive_summary(
     equipment_risk_model: pd.DataFrame,
     account_risk_model: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Build compact executive summary metrics."""
+    """Build compact executive summary metrics with safe empty-data fallbacks."""
+
+    def safe_numeric_median(dataframe: pd.DataFrame, column_name: str) -> float:
+        if dataframe.empty or column_name not in dataframe.columns:
+            return 0.0
+
+        value = dataframe[column_name].median()
+        if pd.isna(value):
+            return 0.0
+
+        return round(float(value), 2)
+
+    def safe_top_value(
+        dataframe: pd.DataFrame,
+        column_name: str,
+        fallback: str = "No data",
+    ) -> str:
+        if dataframe.empty or column_name not in dataframe.columns:
+            return fallback
+
+        value = dataframe.iloc[0][column_name]
+        if pd.isna(value):
+            return fallback
+
+        return str(value)
+
+    completed_callbacks = int(len(analysis_callbacks))
+
+    unique_accounts = 0
+    if not analysis_callbacks.empty and "account_code" in analysis_callbacks.columns:
+        unique_accounts = int(analysis_callbacks["account_code"].nunique())
+
+    unique_equipment = 0
+    if (
+        not analysis_callbacks.empty
+        and "equipment_description_raw" in analysis_callbacks.columns
+    ):
+        unique_equipment = int(
+            analysis_callbacks["equipment_description_raw"].nunique()
+        )
+
+    total_mantraps = 0
+    if not analysis_callbacks.empty and "mantrap_flag" in analysis_callbacks.columns:
+        total_mantraps = int(analysis_callbacks["mantrap_flag"].sum())
+
     return pd.DataFrame(
         [
             {
                 "metric": "Completed / verified callbacks",
-                "value": int(len(analysis_callbacks)),
+                "value": completed_callbacks,
             },
             {
                 "metric": "Unique accounts",
-                "value": int(analysis_callbacks["account_code"].nunique()),
+                "value": unique_accounts,
             },
             {
                 "metric": "Unique equipment",
-                "value": int(analysis_callbacks["equipment_description_raw"].nunique()),
+                "value": unique_equipment,
             },
             {
                 "metric": "Total mantraps",
-                "value": int(analysis_callbacks["mantrap_flag"].sum()),
+                "value": total_mantraps,
             },
             {
                 "metric": "Median response minutes",
-                "value": round(
-                    float(analysis_callbacks["valid_response_minutes"].median()),
-                    2,
+                "value": safe_numeric_median(
+                    analysis_callbacks,
+                    "valid_response_minutes",
                 ),
             },
             {
                 "metric": "Median repair minutes",
-                "value": round(
-                    float(analysis_callbacks["valid_repair_minutes"].median()),
-                    2,
+                "value": safe_numeric_median(
+                    analysis_callbacks,
+                    "valid_repair_minutes",
                 ),
             },
             {
                 "metric": "Top fault family",
-                "value": fault_family_summary.iloc[0]["fault_family_final"],
+                "value": safe_top_value(
+                    fault_family_summary,
+                    "fault_family_final",
+                ),
             },
             {
                 "metric": "Top risk account",
-                "value": account_risk_model.iloc[0]["account_name_raw"],
+                "value": safe_top_value(
+                    account_risk_model,
+                    "account_name_raw",
+                ),
             },
             {
                 "metric": "Top risk equipment",
-                "value": equipment_risk_model.iloc[0]["equipment_description_raw"],
+                "value": safe_top_value(
+                    equipment_risk_model,
+                    "equipment_description_raw",
+                ),
             },
         ]
     )

@@ -26,6 +26,36 @@ def build_gold_tables(silver_callbacks: pd.DataFrame) -> dict[str, pd.DataFrame]
     """Build management-ready gold tables."""
     analysis_callbacks = build_analysis_callbacks(silver_callbacks)
 
+    if analysis_callbacks.empty:
+        empty_table = pd.DataFrame()
+
+        executive_summary = build_executive_summary(
+            analysis_callbacks=analysis_callbacks,
+            fault_family_summary=empty_table,
+            equipment_risk_model=empty_table,
+            account_risk_model=empty_table,
+        )
+
+        data_quality_summary = build_data_quality_summary(silver_callbacks)
+
+        return {
+            "fault_family_summary": empty_table.copy(),
+            "fault_code_summary": empty_table.copy(),
+            "equipment_risk_model": empty_table.copy(),
+            "account_risk_model": empty_table.copy(),
+            "emerging_equipment_alerts": empty_table.copy(),
+            "executive_summary": executive_summary,
+            "data_quality_summary": data_quality_summary,
+            "monthly_callback_trend": empty_table.copy(),
+            "monthly_fault_family_trend": empty_table.copy(),
+            "monthly_fault_code_trend": empty_table.copy(),
+            "monthly_equipment_type_trend": empty_table.copy(),
+            "monthly_account_trend": empty_table.copy(),
+            "monthly_equipment_trend": empty_table.copy(),
+            "equipment_fault_family_mix": empty_table.copy(),
+            "account_fault_family_mix": empty_table.copy(),
+        }
+
     fault_family_summary = build_fault_family_summary(analysis_callbacks)
     fault_code_summary = build_fault_code_summary(analysis_callbacks)
 

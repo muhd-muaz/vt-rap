@@ -23,21 +23,25 @@ def render_management_interpretation(
     emerging_equipment_alerts: pd.DataFrame,
 ) -> None:
     """Render concise management interpretation for the current period."""
-    analyzed_callbacks = html.escape(get_summary_value(
-        executive_summary,
-        "Completed / verified callbacks",
-    ))
-    total_mantraps = html.escape(
-        get_summary_value(executive_summary, "Total mantraps")
+    analyzed_callbacks = html.escape(
+        get_summary_value(
+            executive_summary,
+            "Completed / verified callbacks",
+        )
     )
-    median_response = html.escape(get_summary_value(
-        executive_summary,
-        "Median response minutes",
-    ))
-    median_repair = html.escape(get_summary_value(
-        executive_summary,
-        "Median repair minutes",
-    ))
+    total_mantraps = html.escape(get_summary_value(executive_summary, "Total mantraps"))
+    median_response = html.escape(
+        get_summary_value(
+            executive_summary,
+            "Median response minutes",
+        )
+    )
+    median_repair = html.escape(
+        get_summary_value(
+            executive_summary,
+            "Median repair minutes",
+        )
+    )
     top_fault_family = html.escape(
         get_summary_value(executive_summary, "Top fault family")
     )

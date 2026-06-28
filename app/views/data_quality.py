@@ -3,7 +3,11 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from components.cards_v2 import render_detail_panel, render_empty_state, render_metric_card
+from components.cards_v2 import (
+    render_detail_panel,
+    render_empty_state,
+    render_metric_card,
+)
 from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 

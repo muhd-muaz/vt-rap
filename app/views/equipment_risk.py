@@ -232,9 +232,7 @@ def render_selected_equipment_profile(selected_row: pd.Series) -> None:
         items=[
             (
                 "Equipment",
-                format_profile_text(
-                    selected_row.get("equipment_description_raw", "-")
-                ),
+                format_profile_text(selected_row.get("equipment_description_raw", "-")),
                 "Original equipment description used for risk grouping.",
             ),
             (

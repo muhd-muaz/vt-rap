@@ -1,34 +1,12 @@
-# VT-RAP — Vertical Transport Reliability Analytics Platform
+# VT-RAP - Vertical Transport Reliability Analytics Platform
 
-VT-RAP is a Python-based analytics pipeline and Streamlit dashboard for elevator callback reliability analysis.
+VT-RAP is a Python-based reliability analytics platform for elevator callback data.
 
-It processes callback records, enriches them with master data, builds management-level gold tables, scores equipment/account risk, detects emerging equipment alerts, and provides an interactive dashboard with CSV exports.
+It processes CRM callback exports, enriches operational records with timing, fault-code, equipment, account, and mantrap features, builds dashboard-ready Gold tables, and presents the results through a Streamlit command-center dashboard.
 
-## Key Features
+## Current status
 
-- Raw-to-silver-to-gold data pipeline
-- Fault-code enrichment and fault-family grouping
-- Equipment-level risk scoring
-- Account-level risk scoring
-- Emerging equipment alert detection
-- Monthly callback and response/repair trend analysis
-- Fault family and actual fault code analysis
-- Streamlit dashboard with period filtering
-- Filtered CSV exports from dashboard tables
+Current working branch:
 
-## Dashboard Pages
-
-- Executive Overview
-- Equipment Risk
-- Account Risk
-- Fault Analysis
-- Emerging Alerts
-- Data Quality
-
-## Local Setup
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -e .
-pip install -r requirements.txt
+```text
+bugfix-risk-model-correctness
