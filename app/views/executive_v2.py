@@ -109,6 +109,7 @@ def render_v2_chart_card(title: str, subtitle: str, chart_key: str, figure) -> N
     st.plotly_chart(
         figure,
         use_container_width=True,
+        config={"displayModeBar": False},
         key=chart_key,
     )
 
