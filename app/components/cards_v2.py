@@ -54,3 +54,27 @@ def render_summary_metric_card(
         caption=caption,
         accent=accent,
     )
+
+
+def render_chart_card(title: str, subtitle: str, chart_key: str, figure) -> None:
+    """Render a Plotly chart inside a V2 card surface."""
+    safe_title = html.escape(str(title))
+    safe_subtitle = html.escape(str(subtitle))
+
+    st.markdown(
+        f"""
+        <div class="v2-card-heading">
+            <div>
+                <div class="v2-card-title">{safe_title}</div>
+                <div class="v2-card-subtitle">{safe_subtitle}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.plotly_chart(
+        figure,
+        use_container_width=True,
+        key=chart_key,
+    )

@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import streamlit as st
 
-from components.cards import render_command_card
+from components.cards_v2 import render_chart_card, render_metric_card
 from components.charts import (
     build_equipment_fault_mix_chart,
     build_equipment_monthly_chart,
 )
-from components.layout import render_section_header
+from components.layout_v2 import render_section_header
 from components.downloads import render_csv_download_button
 
 
@@ -44,11 +46,20 @@ def get_available_equipment_types(equipment_risk_model: pd.DataFrame) -> list[st
 
 def filter_equipment_risk_model(equipment_risk_model: pd.DataFrame) -> pd.DataFrame:
     """Render filters and return filtered equipment risk model."""
-    with st.container(border=True):
-        st.caption("Equipment risk filters")
+    st.markdown(
+        """
+        <div class="v2-filter-panel-heading">
+            <div class="v2-filter-panel-title">Equipment risk filters</div>
+            <div class="v2-filter-panel-subtitle">Narrow the ranked equipment set without changing the global period filter.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
+    with st.container(border=True):
         filter_col_1, filter_col_2, filter_col_3, filter_col_4 = st.columns(
-            [1.1, 1.1, 1, 1]
+            [1.15, 1.15, 1, 1],
+            gap="medium",
         )
 
         with filter_col_1:
@@ -143,82 +154,131 @@ def render_equipment_overview_cards(equipment_risk_model: pd.DataFrame) -> None:
         else 0
     )
 
-    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4)
+    card_col_1, card_col_2, card_col_3, card_col_4 = st.columns(4, gap="medium")
 
     with card_col_1:
-        render_command_card(
-            title="Equipment Analyzed",
+        render_metric_card(
+            title="Equipment analyzed",
             value=f"{total_equipment:,}",
             caption="Unique equipment in the selected period.",
+            accent="default",
         )
 
     with card_col_2:
-        render_command_card(
-            title="Critical Risk",
+        render_metric_card(
+            title="Critical risk",
             value=f"{critical_equipment:,}",
             caption="Equipment classified as critical risk.",
+            accent="danger",
         )
 
     with card_col_3:
-        render_command_card(
-            title="High Risk",
+        render_metric_card(
+            title="High risk",
             value=f"{high_equipment:,}",
             caption="Equipment classified as high risk.",
+            accent="warning",
         )
 
     with card_col_4:
-        render_command_card(
-            title="Emerging Signals",
+        render_metric_card(
+            title="Emerging signals",
             value=f"{emerging_equipment:,}",
             caption="Low-history equipment with early warning signals.",
+            accent="blue",
         )
+
+
+def format_profile_text(value, fallback: str = "-") -> str:
+    """Format and escape source text for HTML rendering."""
+    if value is None or pd.isna(value):
+        return fallback
+
+    value_text = str(value).strip()
+    if not value_text:
+        return fallback
+
+    return html.escape(value_text)
+
+
+def format_profile_int(value) -> str:
+    """Format profile integer values."""
+    try:
+        if value is None or pd.isna(value):
+            return "0"
+        return f"{int(value):,}"
+    except (TypeError, ValueError):
+        return "0"
+
+
+def format_profile_float(value) -> str:
+    """Format profile decimal values."""
+    try:
+        if value is None or pd.isna(value):
+            return "0.00"
+        return f"{float(value):,.2f}"
+    except (TypeError, ValueError):
+        return "0.00"
 
 
 def render_selected_equipment_profile(selected_row: pd.Series) -> None:
     """Render selected equipment profile cards."""
+    equipment = format_profile_text(selected_row.get("equipment_description_raw", "-"))
+    account = format_profile_text(selected_row.get("account_name_raw", "-"))
+    risk_tier = format_profile_text(selected_row.get("risk_tier", "-"))
+    primary_driver = format_profile_text(selected_row.get("primary_risk_driver", "-"))
+    signal_type = format_profile_text(selected_row.get("risk_signal_type", "-"))
+    callbacks = format_profile_int(selected_row.get("callbacks", 0))
+    mantraps = format_profile_int(selected_row.get("mantraps", 0))
+    risk_score = format_profile_float(selected_row.get("equipment_risk_score_v3", 0))
+
     st.markdown(
         f"""
-        <div class="insight-panel">
-            <div class="insight-panel-title">Selected equipment profile</div>
-            <div class="insight-grid">
+        <div class="v2-equipment-profile-panel">
+            <div class="v2-equipment-profile-heading">
                 <div>
+                    <div class="v2-eyebrow">Selected equipment</div>
+                    <div class="v2-equipment-profile-title">Risk profile and service context</div>
+                </div>
+                <div class="v2-equipment-profile-score">
+                    <span>Risk score</span>
+                    <strong>{risk_score}</strong>
+                </div>
+            </div>
+            <div class="v2-equipment-profile-grid">
+                <div class="span-2">
                     <span>Equipment</span>
-                    <strong>{selected_row.get("equipment_description_raw", "-")}</strong>
+                    <strong>{equipment}</strong>
                     <p>Original equipment description used for risk grouping.</p>
                 </div>
-                <div>
+                <div class="span-2">
                     <span>Account</span>
-                    <strong>{selected_row.get("account_name_raw", "-")}</strong>
+                    <strong>{account}</strong>
                     <p>Customer account linked to this equipment.</p>
                 </div>
                 <div>
                     <span>Risk tier</span>
-                    <strong>{selected_row.get("risk_tier", "-")}</strong>
+                    <strong>{risk_tier}</strong>
                     <p>Current risk classification for the selected period.</p>
                 </div>
                 <div>
                     <span>Primary driver</span>
-                    <strong>{selected_row.get("primary_risk_driver", "-")}</strong>
+                    <strong>{primary_driver}</strong>
                     <p>Main factor contributing to the equipment risk score.</p>
                 </div>
                 <div>
                     <span>Callbacks</span>
-                    <strong>{int(selected_row.get("callbacks", 0)):,}</strong>
+                    <strong>{callbacks}</strong>
                     <p>Total callback volume for this equipment.</p>
                 </div>
                 <div>
                     <span>Mantraps</span>
-                    <strong>{int(selected_row.get("mantraps", 0)):,}</strong>
+                    <strong>{mantraps}</strong>
                     <p>Mantrap-related callback events.</p>
                 </div>
                 <div>
-                    <span>Risk score</span>
-                    <strong>{float(selected_row.get("equipment_risk_score_v3", 0)):,.2f}</strong>
-                    <p>Composite equipment risk score.</p>
-                </div>
-                <div>
                     <span>Signal type</span>
-                    <strong>{selected_row.get("risk_signal_type", "-")}</strong>
+                    <strong>{signal_type}</strong>
                     <p>Established, watchlist, or emerging risk signal.</p>
                 </div>
             </div>
@@ -273,7 +333,7 @@ def render_equipment_risk(
 ) -> None:
     """Render equipment risk dashboard page."""
     render_section_header(
-        title="Equipment Risk",
+        title="Equipment risk",
         subtitle="Identify high-risk equipment, inspect the main risk drivers, and drill into trend and fault-mix behavior.",
     )
 
@@ -288,7 +348,7 @@ def render_equipment_risk(
     filtered_equipment = filtered_equipment.sort_values(
         "equipment_risk_score_v3",
         ascending=False,
-    )
+    ).copy()
 
     render_section_header(
         title="Filtered equipment ranking",
@@ -297,37 +357,53 @@ def render_equipment_risk(
 
     render_equipment_risk_table(filtered_equipment.head(100))
 
-    selected_equipment = st.selectbox(
+    drilldown_equipment = filtered_equipment.reset_index(drop=True)
+
+    def format_equipment_option(row_position: int) -> str:
+        row = drilldown_equipment.iloc[row_position]
+        equipment_name = str(row.get("equipment_description_raw", "-"))
+        account_name = str(row.get("account_name_raw", "-"))
+        risk_tier = str(row.get("risk_tier", "-"))
+        return f"{account_name} | {equipment_name} | {risk_tier}"
+
+    selected_position = st.selectbox(
         "Select equipment for drilldown",
-        options=filtered_equipment["equipment_description_raw"].tolist(),
+        options=list(range(len(drilldown_equipment))),
+        format_func=format_equipment_option,
         index=0,
-        key="selected_equipment_drilldown",
+        key="selected_equipment_drilldown_v2",
     )
 
-    selected_row = filtered_equipment[
-        filtered_equipment["equipment_description_raw"].eq(selected_equipment)
-    ].iloc[0]
+    selected_row = drilldown_equipment.iloc[selected_position]
+    selected_equipment = str(selected_row.get("equipment_description_raw", ""))
 
     render_selected_equipment_profile(selected_row)
 
-    chart_col_1, chart_col_2 = st.columns(2)
+    render_section_header(
+        title="Equipment drilldown",
+        subtitle="Trend and fault-family mix for the selected equipment description.",
+    )
+
+    chart_col_1, chart_col_2 = st.columns(2, gap="large")
 
     with chart_col_1:
-        st.plotly_chart(
-            build_equipment_monthly_chart(
+        render_chart_card(
+            title="Monthly equipment trend",
+            subtitle="Callbacks and mantraps for the selected equipment description.",
+            chart_key="equipment_risk_monthly_chart",
+            figure=build_equipment_monthly_chart(
                 monthly_equipment_trend=monthly_equipment_trend,
                 selected_equipment=selected_equipment,
             ),
-            width="stretch",
-            key="equipment_risk_monthly_chart",
         )
 
     with chart_col_2:
-        st.plotly_chart(
-            build_equipment_fault_mix_chart(
+        render_chart_card(
+            title="Fault family mix",
+            subtitle="Fault-family callback volume for the selected equipment description.",
+            chart_key="equipment_risk_fault_mix_chart",
+            figure=build_equipment_fault_mix_chart(
                 equipment_fault_family_mix=equipment_fault_family_mix,
                 selected_equipment=selected_equipment,
             ),
-            width="stretch",
-            key="equipment_risk_fault_mix_chart",
         )
