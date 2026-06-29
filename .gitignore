@@ -11,3 +11,8 @@ data/logs/
 .DS_Store
 *.egg-info/
 vt_rap.egg-info/
+# Automation logs
+logs/
+
+# Automation logs
+logs/
